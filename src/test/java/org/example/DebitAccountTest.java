@@ -9,7 +9,11 @@ public class DebitAccountTest {
     @Test
     void initialBalanceIsSaved() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         double balance = account.getBalance();
@@ -21,7 +25,11 @@ public class DebitAccountTest {
     @Test
     void depositIncreasesBalance() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         account.deposit(500);
@@ -33,7 +41,11 @@ public class DebitAccountTest {
     @Test
     void zeroDepositDoesNotChangeBalance() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         account.deposit(0);
@@ -45,7 +57,11 @@ public class DebitAccountTest {
     @Test
     void negativeDepositDoesNotChangeBalance() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         account.deposit(-500);
@@ -57,7 +73,11 @@ public class DebitAccountTest {
     @Test
     void withdrawDecreasesBalance() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         boolean result = account.withdraw(400);
@@ -70,7 +90,11 @@ public class DebitAccountTest {
     @Test
     void cannotWithdrawMoreThanBalance() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         boolean result = account.withdraw(1500);
@@ -83,7 +107,11 @@ public class DebitAccountTest {
     @Test
     void zeroWithdrawIsNotAllowed() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         boolean result = account.withdraw(0);
@@ -96,7 +124,11 @@ public class DebitAccountTest {
     @Test
     void negativeWithdrawIsNotAllowed() {
         // Arrange
-        DebitAccount account = new DebitAccount("1", "Ivan", 1000);
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         // Act
         boolean result = account.withdraw(-500);

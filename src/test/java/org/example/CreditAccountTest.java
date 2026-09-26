@@ -9,8 +9,12 @@ public class CreditAccountTest {
     @Test
     void accountCanHaveNegativeBalance() {
         // Arrange
-        CreditAccount account =
-                new CreditAccount("1", "Ivan", 1000, 5000);
+        CreditAccount account = new CreditAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000,
+                5000
+        );
 
         // Act
         boolean result = account.withdraw(2000);
@@ -23,8 +27,12 @@ public class CreditAccountTest {
     @Test
     void canUseCreditLimit() {
         // Arrange
-        CreditAccount account =
-                new CreditAccount("1", "Ivan", 1000, 5000);
+        CreditAccount account = new CreditAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000,
+                5000
+        );
 
         // Act
         boolean result = account.withdraw(6000);
@@ -37,8 +45,12 @@ public class CreditAccountTest {
     @Test
     void cannotExceedCreditLimit() {
         // Arrange
-        CreditAccount account =
-                new CreditAccount("1", "Ivan", 1000, 5000);
+        CreditAccount account = new CreditAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000,
+                5000
+        );
 
         // Act
         boolean result = account.withdraw(7000);
@@ -51,8 +63,12 @@ public class CreditAccountTest {
     @Test
     void failedWithdrawDoesNotChangeBalance() {
         // Arrange
-        CreditAccount account =
-                new CreditAccount("1", "Ivan", 1000, 5000);
+        CreditAccount account = new CreditAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000,
+                5000
+        );
 
         account.withdraw(4000);
 

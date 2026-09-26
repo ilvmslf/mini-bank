@@ -5,7 +5,7 @@ public class SavingsAccount extends BankAccount {
     private final double minimumBalance;
 
     public SavingsAccount(
-            String number,
+            AccountNumber number,
             String owner,
             double initialBalance,
             double minimumBalance) {
@@ -33,6 +33,7 @@ public class SavingsAccount extends BankAccount {
         }
 
         decreaseBalance(amount);
+
         return true;
     }
 }

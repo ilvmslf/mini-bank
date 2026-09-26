@@ -9,8 +9,12 @@ public class SavingsAccountTest {
     @Test
     void canWithdrawIfMinimumBalanceRemains() {
         // Arrange
-        SavingsAccount account =
-                new SavingsAccount("1", "Ivan", 10000, 1000);
+        SavingsAccount account = new SavingsAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000,
+                1000
+        );
 
         // Act
         boolean result = account.withdraw(8500);
@@ -23,8 +27,12 @@ public class SavingsAccountTest {
     @Test
     void cannotWithdrawBelowMinimumBalance() {
         // Arrange
-        SavingsAccount account =
-                new SavingsAccount("1", "Ivan", 1500, 1000);
+        SavingsAccount account = new SavingsAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1500,
+                1000
+        );
 
         // Act
         boolean result = account.withdraw(1000);
@@ -37,8 +45,12 @@ public class SavingsAccountTest {
     @Test
     void failedWithdrawDoesNotChangeBalance() {
         // Arrange
-        SavingsAccount account =
-                new SavingsAccount("1", "Ivan", 2000, 1000);
+        SavingsAccount account = new SavingsAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                2000,
+                1000
+        );
 
         // Act
         boolean result = account.withdraw(1500);

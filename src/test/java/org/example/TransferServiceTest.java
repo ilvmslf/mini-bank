@@ -9,8 +9,17 @@ public class TransferServiceTest {
     @Test
     void successfulTransferChangesBothBalances() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 10000);
-        BankAccount to = new DebitAccount("2", "Petr", 2000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -29,8 +38,17 @@ public class TransferServiceTest {
     @Test
     void failedTransferDoesNotChangeBalances() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 1000);
-        BankAccount to = new DebitAccount("2", "Petr", 2000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -49,8 +67,17 @@ public class TransferServiceTest {
     @Test
     void cannotTransferNegativeAmount() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 1000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -69,8 +96,17 @@ public class TransferServiceTest {
     @Test
     void cannotTransferZeroAmount() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 1000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -89,7 +125,11 @@ public class TransferServiceTest {
     @Test
     void cannotTransferToSameAccount() {
         // Arrange
-        BankAccount account = new DebitAccount("1", "Ivan", 1000);
+        BankAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -107,8 +147,17 @@ public class TransferServiceTest {
     @Test
     void commissionIsWithdrawnFromSender() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 20000);
-        BankAccount to = new DebitAccount("2", "Petr", 0);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                20000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                0
+        );
 
         TransferService service = new TransferService(
                 new PercentCommission(1),
@@ -126,8 +175,17 @@ public class TransferServiceTest {
     @Test
     void receiverGetsExactTransferAmount() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 20000);
-        BankAccount to = new DebitAccount("2", "Petr", 0);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                20000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                0
+        );
 
         TransferService service = new TransferService(
                 new PercentCommission(1),
@@ -145,8 +203,17 @@ public class TransferServiceTest {
     @Test
     void transferFailsIfBalanceIsNotEnoughWithCommission() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 10000);
-        BankAccount to = new DebitAccount("2", "Petr", 2000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000
+        );
 
         TransferService service = new TransferService(
                 new PercentCommission(1),
@@ -165,8 +232,17 @@ public class TransferServiceTest {
     @Test
     void debitToDebitTransferWorks() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 5000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -185,8 +261,18 @@ public class TransferServiceTest {
     @Test
     void debitToSavingsTransferWorks() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 5000);
-        BankAccount to = new SavingsAccount("2", "Petr", 2000, 1000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new SavingsAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000,
+                1000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -205,8 +291,18 @@ public class TransferServiceTest {
     @Test
     void creditToDebitTransferWorks() {
         // Arrange
-        BankAccount from = new CreditAccount("1", "Ivan", 1000, 5000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new CreditAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000,
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -225,8 +321,18 @@ public class TransferServiceTest {
     @Test
     void savingsToDebitTransferWorks() {
         // Arrange
-        BankAccount from = new SavingsAccount("1", "Ivan", 5000, 1000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new SavingsAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000,
+                1000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         TransferService service = new TransferService(
                 new NoCommission(),
@@ -245,8 +351,17 @@ public class TransferServiceTest {
     @Test
     void successfulTransferSendsOneNotification() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 5000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         FakeNotificationService notificationService =
                 new FakeNotificationService();
@@ -267,8 +382,17 @@ public class TransferServiceTest {
     @Test
     void failedTransferDoesNotSendNotification() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 1000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         FakeNotificationService notificationService =
                 new FakeNotificationService();
@@ -289,8 +413,17 @@ public class TransferServiceTest {
     @Test
     void successfulTransferSendsCorrectMessage() {
         // Arrange
-        BankAccount from = new DebitAccount("1", "Ivan", 5000);
-        BankAccount to = new DebitAccount("2", "Petr", 1000);
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
 
         FakeNotificationService notificationService =
                 new FakeNotificationService();
@@ -305,7 +438,6 @@ public class TransferServiceTest {
 
         // Assert
         assertTrue(result);
-
         assertEquals(
                 "Transfer 3000.0 completed",
                 notificationService.getLastMessage()

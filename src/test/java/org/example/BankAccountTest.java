@@ -9,11 +9,18 @@ public class BankAccountTest {
     @Test
     void accountsWithSameNumberAreEqual() {
         // Arrange
-        BankAccount account1 =
-                new DebitAccount("001", "Ivan", 10000);
+        BankAccount account1 = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
 
-        BankAccount account2 =
-                new SavingsAccount("001", "Petr", 5000, 1000);
+        BankAccount account2 = new SavingsAccount(
+                new AccountNumber("0000000001"),
+                "Petr",
+                5000,
+                1000
+        );
 
         // Act
         boolean result = account1.equals(account2);
@@ -25,11 +32,17 @@ public class BankAccountTest {
     @Test
     void accountsWithDifferentNumbersAreNotEqual() {
         // Arrange
-        BankAccount account1 =
-                new DebitAccount("001", "Ivan", 10000);
+        BankAccount account1 = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
 
-        BankAccount account2 =
-                new DebitAccount("002", "Ivan", 10000);
+        BankAccount account2 = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Ivan",
+                10000
+        );
 
         // Act
         boolean result = account1.equals(account2);
@@ -41,8 +54,11 @@ public class BankAccountTest {
     @Test
     void accountEqualsItself() {
         // Arrange
-        BankAccount account =
-                new DebitAccount("001", "Ivan", 10000);
+        BankAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
 
         // Act
         boolean result = account.equals(account);
@@ -54,8 +70,11 @@ public class BankAccountTest {
     @Test
     void accountDoesNotEqualNull() {
         // Arrange
-        BankAccount account =
-                new DebitAccount("001", "Ivan", 10000);
+        BankAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
 
         // Act
         boolean result = account.equals(null);
@@ -67,11 +86,18 @@ public class BankAccountTest {
     @Test
     void equalAccountsHaveSameHashCode() {
         // Arrange
-        BankAccount account1 =
-                new DebitAccount("001", "Ivan", 10000);
+        BankAccount account1 = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
 
-        BankAccount account2 =
-                new CreditAccount("001", "Petr", 5000, 10000);
+        BankAccount account2 = new CreditAccount(
+                new AccountNumber("0000000001"),
+                "Petr",
+                5000,
+                10000
+        );
 
         // Act
         int hash1 = account1.hashCode();

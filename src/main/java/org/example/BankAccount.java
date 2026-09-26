@@ -1,18 +1,25 @@
 package org.example;
+
 import java.util.Objects;
 
 public abstract class BankAccount {
 
-    private final String number;
+    private final AccountNumber number;
     private final String owner;
     private double balance;
 
-    protected BankAccount(String number, String owner, double initialBalance) {
+    protected BankAccount(
+            AccountNumber number,
+            String owner,
+            double initialBalance) {
+
         this.number = number;
         this.owner = owner;
 
         if (initialBalance < 0) {
-            throw new IllegalArgumentException("Начальный баланс не может быть отрицательным");
+            throw new IllegalArgumentException(
+                    "Начальный баланс не может быть отрицательным"
+            );
         }
 
         this.balance = initialBalance;
@@ -37,9 +44,9 @@ public abstract class BankAccount {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{\n" +
-                " number='" + number + "',\n" +
+                " number='" + number.value() + "',\n" +
                 " owner='" + owner + "',\n" +
-                " balance='" + balance + "',\n" +
+                " balance=" + balance + "\n" +
                 "}";
     }
 
