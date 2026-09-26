@@ -162,9 +162,6 @@ public class TransferServiceTest {
                 "Insufficient funds",
                 ex.getMessage()
         );
-
-        assertEquals(1000, from.getBalance());
-        assertEquals(2000, to.getBalance());
     }
 
     @Test
@@ -200,6 +197,36 @@ public class TransferServiceTest {
 
         assertEquals(100000, from.getBalance());
         assertEquals(1000, to.getBalance());
+    }
+
+    @Test
+    void failedTransferDoesNotChangeBalances() {
+        // Arrange
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000
+        );
+
+        TransferService service = new TransferService(
+                new NoCommission(),
+                new ConsoleNotificationService()
+        );
+
+        // Act + Assert
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> service.transfer(from, to, 5000)
+        );
+
+        assertEquals(1000, from.getBalance());
+        assertEquals(2000, to.getBalance());
     }
 
     @Test
