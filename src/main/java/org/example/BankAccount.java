@@ -32,4 +32,13 @@ public abstract class BankAccount {
     protected void decreaseBalance(double amount) {
         balance -= amount;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{\n" +
+                " number='" + number + "',\n" +
+                " owner='" + owner + "',\n" +
+                " balance='" + balance + "',\n" +
+                "}";
+    }
 }
