@@ -39,7 +39,7 @@ public class DebitAccountTest {
     }
 
     @Test
-    void zeroDepositDoesNotChangeBalance() {
+    void zeroDepositThrowsException() {
         // Arrange
         DebitAccount account = new DebitAccount(
                 new AccountNumber("0000000001"),
@@ -47,15 +47,15 @@ public class DebitAccountTest {
                 1000
         );
 
-        // Act
-        account.deposit(0);
-
-        // Assert
-        assertEquals(1000, account.getBalance());
+        // Act + Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> account.deposit(0)
+        );
     }
 
     @Test
-    void negativeDepositDoesNotChangeBalance() {
+    void negativeDepositThrowsException() {
         // Arrange
         DebitAccount account = new DebitAccount(
                 new AccountNumber("0000000001"),
@@ -63,11 +63,11 @@ public class DebitAccountTest {
                 1000
         );
 
-        // Act
-        account.deposit(-500);
-
-        // Assert
-        assertEquals(1000, account.getBalance());
+        // Act + Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> account.deposit(-500)
+        );
     }
 
     @Test
