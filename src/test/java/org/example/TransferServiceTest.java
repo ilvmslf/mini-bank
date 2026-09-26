@@ -27,16 +27,15 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 3000);
+        service.transfer(from, to, 3000);
 
         // Assert
-        assertTrue(result);
         assertEquals(7000, from.getBalance());
         assertEquals(5000, to.getBalance());
     }
 
     @Test
-    void failedTransferDoesNotChangeBalances() {
+    void insufficientFundsThrowsExceptionAndDoesNotChangeReceiver() {
         // Arrange
         BankAccount from = new DebitAccount(
                 new AccountNumber("0000000001"),
@@ -55,17 +54,18 @@ public class TransferServiceTest {
                 new ConsoleNotificationService()
         );
 
-        // Act
-        boolean result = service.transfer(from, to, 3000);
+        // Act + Assert
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> service.transfer(from, to, 3000)
+        );
 
-        // Assert
-        assertFalse(result);
         assertEquals(1000, from.getBalance());
         assertEquals(2000, to.getBalance());
     }
 
     @Test
-    void cannotTransferNegativeAmount() {
+    void negativeAmountThrowsException() {
         // Arrange
         BankAccount from = new DebitAccount(
                 new AccountNumber("0000000001"),
@@ -84,17 +84,18 @@ public class TransferServiceTest {
                 new ConsoleNotificationService()
         );
 
-        // Act
-        boolean result = service.transfer(from, to, -500);
+        // Act + Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.transfer(from, to, -500)
+        );
 
-        // Assert
-        assertFalse(result);
         assertEquals(1000, from.getBalance());
         assertEquals(1000, to.getBalance());
     }
 
     @Test
-    void cannotTransferZeroAmount() {
+    void zeroAmountThrowsException() {
         // Arrange
         BankAccount from = new DebitAccount(
                 new AccountNumber("0000000001"),
@@ -113,17 +114,18 @@ public class TransferServiceTest {
                 new ConsoleNotificationService()
         );
 
-        // Act
-        boolean result = service.transfer(from, to, 0);
+        // Act + Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.transfer(from, to, 0)
+        );
 
-        // Assert
-        assertFalse(result);
         assertEquals(1000, from.getBalance());
         assertEquals(1000, to.getBalance());
     }
 
     @Test
-    void cannotTransferToSameAccount() {
+    void transferToSameAccountThrowsException() {
         // Arrange
         BankAccount account = new DebitAccount(
                 new AccountNumber("0000000001"),
@@ -136,12 +138,43 @@ public class TransferServiceTest {
                 new ConsoleNotificationService()
         );
 
-        // Act
-        boolean result = service.transfer(account, account, 500);
+        // Act + Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.transfer(account, account, 500)
+        );
 
-        // Assert
-        assertFalse(result);
         assertEquals(1000, account.getBalance());
+    }
+
+    @Test
+    void transferAboveLimitThrowsException() {
+        // Arrange
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                100000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        TransferService service = new TransferService(
+                new NoCommission(),
+                new ConsoleNotificationService()
+        );
+
+        // Act + Assert
+        assertThrows(
+                TransferLimitExceededException.class,
+                () -> service.transfer(from, to, 50001)
+        );
+
+        assertEquals(100000, from.getBalance());
+        assertEquals(1000, to.getBalance());
     }
 
     @Test
@@ -165,10 +198,9 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 10000);
+        service.transfer(from, to, 10000);
 
         // Assert
-        assertTrue(result);
         assertEquals(9900, from.getBalance());
     }
 
@@ -193,10 +225,9 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 10000);
+        service.transfer(from, to, 10000);
 
         // Assert
-        assertTrue(result);
         assertEquals(10000, to.getBalance());
     }
 
@@ -220,11 +251,12 @@ public class TransferServiceTest {
                 new ConsoleNotificationService()
         );
 
-        // Act
-        boolean result = service.transfer(from, to, 10000);
+        // Act + Assert
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> service.transfer(from, to, 10000)
+        );
 
-        // Assert
-        assertFalse(result);
         assertEquals(10000, from.getBalance());
         assertEquals(2000, to.getBalance());
     }
@@ -250,10 +282,9 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 2000);
+        service.transfer(from, to, 2000);
 
         // Assert
-        assertTrue(result);
         assertEquals(3000, from.getBalance());
         assertEquals(3000, to.getBalance());
     }
@@ -280,10 +311,9 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 2000);
+        service.transfer(from, to, 2000);
 
         // Assert
-        assertTrue(result);
         assertEquals(3000, from.getBalance());
         assertEquals(4000, to.getBalance());
     }
@@ -310,10 +340,9 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 3000);
+        service.transfer(from, to, 3000);
 
         // Assert
-        assertTrue(result);
         assertEquals(-2000, from.getBalance());
         assertEquals(4000, to.getBalance());
     }
@@ -340,10 +369,9 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 3000);
+        service.transfer(from, to, 3000);
 
         // Assert
-        assertTrue(result);
         assertEquals(2000, from.getBalance());
         assertEquals(4000, to.getBalance());
     }
@@ -372,11 +400,13 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 3000);
+        service.transfer(from, to, 3000);
 
         // Assert
-        assertTrue(result);
-        assertEquals(1, notificationService.getNotificationCount());
+        assertEquals(
+                1,
+                notificationService.getNotificationCount()
+        );
     }
 
     @Test
@@ -402,12 +432,16 @@ public class TransferServiceTest {
                 notificationService
         );
 
-        // Act
-        boolean result = service.transfer(from, to, 3000);
+        // Act + Assert
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> service.transfer(from, to, 3000)
+        );
 
-        // Assert
-        assertFalse(result);
-        assertEquals(0, notificationService.getNotificationCount());
+        assertEquals(
+                0,
+                notificationService.getNotificationCount()
+        );
     }
 
     @Test
@@ -434,10 +468,9 @@ public class TransferServiceTest {
         );
 
         // Act
-        boolean result = service.transfer(from, to, 3000);
+        service.transfer(from, to, 3000);
 
         // Assert
-        assertTrue(result);
         assertEquals(
                 "Transfer 3000.0 completed",
                 notificationService.getLastMessage()

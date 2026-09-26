@@ -2,6 +2,8 @@ package org.example;
 
 public class TransferService {
 
+    private static final double TRANSFER_LIMIT = 50000;
+
     private final CommissionPolicy commissionPolicy;
     private final NotificationService notificationService;
 
@@ -13,36 +15,38 @@ public class TransferService {
         this.notificationService = notificationService;
     }
 
-    public boolean transfer(
+    public void transfer(
             BankAccount from,
             BankAccount to,
             double amount) {
 
         if (amount <= 0) {
-            return false;
+            throw new IllegalArgumentException(
+                    "Amount must be positive"
+            );
         }
 
         if (from == to) {
-            return false;
+            throw new IllegalArgumentException(
+                    "Cannot transfer to the same account"
+            );
+        }
+
+        if (amount > TRANSFER_LIMIT) {
+            throw new TransferLimitExceededException(
+                    "Transfer limit exceeded"
+            );
         }
 
         double commission = commissionPolicy.calculate(amount);
         double totalAmount = amount + commission;
 
-        try {
-            from.withdraw(totalAmount);
-        } catch (IllegalArgumentException |
-                 InsufficientFundsException exception) {
-
-            return false;
-        }
+        from.withdraw(totalAmount);
 
         to.deposit(amount);
 
         notificationService.notify(
                 "Transfer " + amount + " completed"
         );
-
-        return true;
     }
 }
