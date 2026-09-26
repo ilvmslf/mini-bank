@@ -4,29 +4,38 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Transaction tx1 = new Transaction(
-                TransactionType.DEPOSIT,
-                new AccountNumber("1234567890"),
-                5000,
-                TransactionStatus.SUCCESS
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                3000
         );
 
-        Transaction tx2 = new Transaction(
-                TransactionType.WITHDRAWAL,
-                new AccountNumber("1234567890"),
-                2000,
-                TransactionStatus.SUCCESS
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000
         );
 
-        Transaction tx3 = new Transaction(
-                TransactionType.TRANSFER,
-                new AccountNumber("0987654321"),
-                10000,
-                TransactionStatus.REJECTED
+        TransferService transferService = new TransferService(
+                new NoCommission(),
+                new ConsoleNotificationService()
         );
 
-        System.out.println(tx1);
-        System.out.println(tx2);
-        System.out.println(tx3);
+        try {
+            transferService.transfer(from, to, 5000);
+
+            System.out.println(
+                    "Transfer completed"
+            );
+
+        } catch (InsufficientFundsException e) {
+
+            System.out.println(
+                    "Transfer failed: " + e.getMessage()
+            );
+        }
+
+        System.out.println("From balance: " + from.getBalance());
+        System.out.println("To balance: " + to.getBalance());
     }
 }
