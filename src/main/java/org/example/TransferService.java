@@ -2,6 +2,12 @@ package org.example;
 
 public class TransferService {
 
+    private final CommissionPolicy commissionPolicy;
+
+    public TransferService(CommissionPolicy commissionPolicy) {
+        this.commissionPolicy = commissionPolicy;
+    }
+
     public boolean transfer(
             BankAccount from,
             BankAccount to,
@@ -15,13 +21,17 @@ public class TransferService {
             return false;
         }
 
-        boolean withdrawn = from.withdraw(amount);
+        double commission = commissionPolicy.calculate(amount);
+        double totalAmount = amount + commission;
+
+        boolean withdrawn = from.withdraw(totalAmount);
 
         if (!withdrawn) {
             return false;
         }
 
         to.deposit(amount);
+
         return true;
     }
 }
