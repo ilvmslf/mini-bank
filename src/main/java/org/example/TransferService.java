@@ -3,9 +3,14 @@ package org.example;
 public class TransferService {
 
     private final CommissionPolicy commissionPolicy;
+    private final NotificationService notificationService;
 
-    public TransferService(CommissionPolicy commissionPolicy) {
+    public TransferService(
+            CommissionPolicy commissionPolicy,
+            NotificationService notificationService) {
+
         this.commissionPolicy = commissionPolicy;
+        this.notificationService = notificationService;
     }
 
     public boolean transfer(
@@ -31,6 +36,10 @@ public class TransferService {
         }
 
         to.deposit(amount);
+
+        notificationService.notify(
+                "Transfer " + amount + " completed"
+        );
 
         return true;
     }
