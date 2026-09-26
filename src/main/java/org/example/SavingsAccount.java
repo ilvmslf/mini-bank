@@ -22,18 +22,7 @@ public class SavingsAccount extends BankAccount {
     }
 
     @Override
-    public boolean withdraw(double amount) {
-
-        if (amount <= 0) {
-            return false;
-        }
-
-        if (getBalance() - amount < minimumBalance) {
-            return false;
-        }
-
-        decreaseBalance(amount);
-
-        return true;
+    protected double getAvailableAmount() {
+        return getBalance() - minimumBalance;
     }
 }

@@ -8,7 +8,6 @@ public class CreditAccountTest {
 
     @Test
     void accountCanHaveNegativeBalance() {
-        // Arrange
         CreditAccount account = new CreditAccount(
                 new AccountNumber("0000000001"),
                 "Ivan",
@@ -16,17 +15,13 @@ public class CreditAccountTest {
                 5000
         );
 
-        // Act
-        boolean result = account.withdraw(2000);
+        account.withdraw(2000);
 
-        // Assert
-        assertTrue(result);
         assertEquals(-1000, account.getBalance());
     }
 
     @Test
     void canUseCreditLimit() {
-        // Arrange
         CreditAccount account = new CreditAccount(
                 new AccountNumber("0000000001"),
                 "Ivan",
@@ -34,17 +29,13 @@ public class CreditAccountTest {
                 5000
         );
 
-        // Act
-        boolean result = account.withdraw(6000);
+        account.withdraw(6000);
 
-        // Assert
-        assertTrue(result);
         assertEquals(-5000, account.getBalance());
     }
 
     @Test
     void cannotExceedCreditLimit() {
-        // Arrange
         CreditAccount account = new CreditAccount(
                 new AccountNumber("0000000001"),
                 "Ivan",
@@ -52,17 +43,14 @@ public class CreditAccountTest {
                 5000
         );
 
-        // Act
-        boolean result = account.withdraw(7000);
-
-        // Assert
-        assertFalse(result);
-        assertEquals(1000, account.getBalance());
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> account.withdraw(7000)
+        );
     }
 
     @Test
     void failedWithdrawDoesNotChangeBalance() {
-        // Arrange
         CreditAccount account = new CreditAccount(
                 new AccountNumber("0000000001"),
                 "Ivan",
@@ -72,11 +60,11 @@ public class CreditAccountTest {
 
         account.withdraw(4000);
 
-        // Act
-        boolean result = account.withdraw(3000);
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> account.withdraw(3000)
+        );
 
-        // Assert
-        assertFalse(result);
         assertEquals(-3000, account.getBalance());
     }
 }

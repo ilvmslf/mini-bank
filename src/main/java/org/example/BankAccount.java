@@ -35,11 +35,27 @@ public abstract class BankAccount {
         increaseBalance(amount);
     }
 
-    public abstract boolean withdraw(double amount);
+    public void withdraw(double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException(
+                    "Amount must be positive"
+            );
+        }
+
+        if (amount > getAvailableAmount()) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds"
+            );
+        }
+
+        decreaseBalance(amount);
+    }
 
     public double getBalance() {
         return balance;
     }
+
+    protected abstract double getAvailableAmount();
 
     protected void increaseBalance(double amount) {
         balance += amount;

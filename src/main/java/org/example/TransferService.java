@@ -29,9 +29,11 @@ public class TransferService {
         double commission = commissionPolicy.calculate(amount);
         double totalAmount = amount + commission;
 
-        boolean withdrawn = from.withdraw(totalAmount);
+        try {
+            from.withdraw(totalAmount);
+        } catch (IllegalArgumentException |
+                 InsufficientFundsException exception) {
 
-        if (!withdrawn) {
             return false;
         }
 

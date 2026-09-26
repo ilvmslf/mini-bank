@@ -11,18 +11,7 @@ public class DebitAccount extends BankAccount {
     }
 
     @Override
-    public boolean withdraw(double amount) {
-
-        if (amount <= 0) {
-            return false;
-        }
-
-        if (amount > getBalance()) {
-            return false;
-        }
-
-        decreaseBalance(amount);
-
-        return true;
+    protected double getAvailableAmount() {
+        return getBalance();
     }
 }
