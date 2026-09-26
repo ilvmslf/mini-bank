@@ -241,4 +241,74 @@ public class TransferServiceTest {
         assertEquals(2000, from.getBalance());
         assertEquals(4000, to.getBalance());
     }
+
+    @Test
+    void successfulTransferSendsOneNotification() {
+        // Arrange
+        BankAccount from = new DebitAccount("1", "Ivan", 5000);
+        BankAccount to = new DebitAccount("2", "Petr", 1000);
+
+        FakeNotificationService notificationService =
+                new FakeNotificationService();
+
+        TransferService service = new TransferService(
+                new NoCommission(),
+                notificationService
+        );
+
+        // Act
+        boolean result = service.transfer(from, to, 3000);
+
+        // Assert
+        assertTrue(result);
+        assertEquals(1, notificationService.getNotificationCount());
+    }
+
+    @Test
+    void failedTransferDoesNotSendNotification() {
+        // Arrange
+        BankAccount from = new DebitAccount("1", "Ivan", 1000);
+        BankAccount to = new DebitAccount("2", "Petr", 1000);
+
+        FakeNotificationService notificationService =
+                new FakeNotificationService();
+
+        TransferService service = new TransferService(
+                new NoCommission(),
+                notificationService
+        );
+
+        // Act
+        boolean result = service.transfer(from, to, 3000);
+
+        // Assert
+        assertFalse(result);
+        assertEquals(0, notificationService.getNotificationCount());
+    }
+
+    @Test
+    void successfulTransferSendsCorrectMessage() {
+        // Arrange
+        BankAccount from = new DebitAccount("1", "Ivan", 5000);
+        BankAccount to = new DebitAccount("2", "Petr", 1000);
+
+        FakeNotificationService notificationService =
+                new FakeNotificationService();
+
+        TransferService service = new TransferService(
+                new NoCommission(),
+                notificationService
+        );
+
+        // Act
+        boolean result = service.transfer(from, to, 3000);
+
+        // Assert
+        assertTrue(result);
+
+        assertEquals(
+                "Transfer 3000.0 completed",
+                notificationService.getLastMessage()
+        );
+    }
 }
