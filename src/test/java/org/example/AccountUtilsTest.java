@@ -67,62 +67,42 @@ public class AccountUtilsTest {
     }
 
     @Test
-    void totalBalanceWorksWithSavingsAccounts() {
+    void addDemoDebitAccountsWorksWithDebitAccountList() {
         // Arrange
-        List<SavingsAccount> accounts = new ArrayList<>();
-
-        accounts.add(
-                new SavingsAccount(
-                        new AccountNumber("0000000001"),
-                        "Ivan",
-                        1500,
-                        500
-                )
-        );
-
-        accounts.add(
-                new SavingsAccount(
-                        new AccountNumber("0000000002"),
-                        "Petr",
-                        2500,
-                        500
-                )
-        );
+        List<DebitAccount> accounts = new ArrayList<>();
 
         // Act
-        double total = AccountUtils.totalBalance(accounts);
+        AccountUtils.addDemoDebitAccounts(accounts);
 
         // Assert
-        assertEquals(4000, total);
+        assertEquals(2, accounts.size());
     }
 
     @Test
-    void totalBalanceWorksWithCreditAccounts() {
+    void addDemoDebitAccountsWorksWithBankAccountList() {
         // Arrange
-        List<CreditAccount> accounts = new ArrayList<>();
-
-        accounts.add(
-                new CreditAccount(
-                        new AccountNumber("0000000001"),
-                        "Ivan",
-                        1000,
-                        5000
-                )
-        );
-
-        accounts.add(
-                new CreditAccount(
-                        new AccountNumber("0000000002"),
-                        "Petr",
-                        2000,
-                        5000
-                )
-        );
+        List<BankAccount> accounts = new ArrayList<>();
 
         // Act
-        double total = AccountUtils.totalBalance(accounts);
+        AccountUtils.addDemoDebitAccounts(accounts);
 
         // Assert
-        assertEquals(3000, total);
+        assertEquals(2, accounts.size());
+        assertTrue(accounts.get(0) instanceof DebitAccount);
+        assertTrue(accounts.get(1) instanceof DebitAccount);
+    }
+
+    @Test
+    void addDemoDebitAccountsWorksWithObjectList() {
+        // Arrange
+        List<Object> values = new ArrayList<>();
+
+        // Act
+        AccountUtils.addDemoDebitAccounts(values);
+
+        // Assert
+        assertEquals(2, values.size());
+        assertTrue(values.get(0) instanceof DebitAccount);
+        assertTrue(values.get(1) instanceof DebitAccount);
     }
 }
