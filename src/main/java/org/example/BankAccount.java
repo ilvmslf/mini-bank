@@ -2,7 +2,8 @@ package org.example;
 
 import java.util.Objects;
 
-public abstract class BankAccount {
+public abstract class BankAccount
+        implements Identifiable<AccountNumber> {
 
     private final AccountNumber number;
     private final String owner;
@@ -23,6 +24,11 @@ public abstract class BankAccount {
         }
 
         this.balance = initialBalance;
+    }
+
+    @Override
+    public AccountNumber getId() {
+        return number;
     }
 
     public void deposit(double amount) {
