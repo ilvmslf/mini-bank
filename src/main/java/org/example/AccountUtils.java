@@ -2,7 +2,10 @@ package org.example;
 
 import java.util.List;
 
-public class AccountUtils {
+public final class AccountUtils {
+
+    private AccountUtils() {
+    }
 
     public static double totalBalance(
             List<? extends BankAccount> accounts) {
@@ -43,5 +46,23 @@ public class AccountUtils {
         for (T value : source) {
             target.add(value);
         }
+    }
+
+    public static <T extends BankAccount>
+    T richest(List<T> accounts) {
+
+        if (accounts.isEmpty()) {
+            return null;
+        }
+
+        T richest = accounts.get(0);
+
+        for (T account : accounts) {
+            if (account.getBalance() > richest.getBalance()) {
+                richest = account;
+            }
+        }
+
+        return richest;
     }
 }

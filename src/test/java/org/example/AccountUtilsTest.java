@@ -164,7 +164,8 @@ public class AccountUtilsTest {
 
         // Assert
         assertEquals(2, target.size());
-        assertSame(first, target.get(0));
+        assertSame(first,
+                target.get(0));
         assertSame(second, target.get(1));
     }
 
@@ -236,5 +237,103 @@ public class AccountUtilsTest {
         assertSame(first, target.get(0));
         assertSame(second, target.get(1));
         assertSame(third, target.get(2));
+    }
+
+    @Test
+    void richestReturnsDebitAccountWithMaximumBalance() {
+        // Arrange
+        List<DebitAccount> accounts = new ArrayList<>();
+
+        DebitAccount first = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        DebitAccount second = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                5000
+        );
+
+        DebitAccount third = new DebitAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                3000
+        );
+
+        accounts.add(first);
+        accounts.add(second);
+        accounts.add(third);
+
+        // Act
+        DebitAccount richest =
+                AccountUtils.richest(accounts);
+
+        // Assert
+        assertSame(second, richest);
+        assertEquals(5000, richest.getBalance());
+    }
+
+    @Test
+    void richestReturnsNullForEmptyList() {
+        // Arrange
+        List<DebitAccount> accounts = new ArrayList<>();
+
+        // Act
+        DebitAccount richest =
+                AccountUtils.richest(accounts);
+
+        // Assert
+        assertNull(richest);
+    }
+
+    @Test
+    void richestReturnsOnlyElement() {
+        // Arrange
+        List<DebitAccount> accounts = new ArrayList<>();
+
+        DebitAccount account = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        accounts.add(account);
+
+        // Act
+        DebitAccount richest =
+                AccountUtils.richest(accounts);
+
+        // Assert
+        assertSame(account, richest);
+    }
+
+    @Test
+    void richestReturnsFirstAccountWhenBalancesAreEqual() {
+        // Arrange
+        List<DebitAccount> accounts = new ArrayList<>();
+
+        DebitAccount first = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        DebitAccount second = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                5000
+        );
+
+        accounts.add(first);
+        accounts.add(second);
+
+        // Act
+        DebitAccount richest =
+                AccountUtils.richest(accounts);
+
+        // Assert
+        assertSame(first, richest);
     }
 }
