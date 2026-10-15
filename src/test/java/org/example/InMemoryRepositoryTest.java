@@ -2,22 +2,24 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryRepositoryTest {
 
     @Test
-    void savedAccountCanBeFoundById() {
+    void saveAndFindByIdReturnsSavedAccount() {
         // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
-        AccountNumber number =
+        AccountNumber id =
                 new AccountNumber("0000000001");
 
         BankAccount account =
                 new DebitAccount(
-                        number,
+                        id,
                         "Ivan",
                         1000
                 );
@@ -26,14 +28,57 @@ public class InMemoryRepositoryTest {
         repository.save(account);
 
         BankAccount result =
-                repository.findById(number);
+                repository.findById(id);
 
         // Assert
-        assertEquals(account, result);
+        assertSame(account, result);
     }
 
     @Test
-    void sizeIncreasesAfterSave() {
+    void existsByIdReturnsTrueForExistingId() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        AccountNumber id =
+                new AccountNumber("0000000001");
+
+        BankAccount account =
+                new DebitAccount(
+                        id,
+                        "Ivan",
+                        1000
+                );
+
+        repository.save(account);
+
+        // Act
+        boolean result =
+                repository.existsById(id);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void existsByIdReturnsFalseForMissingId() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        AccountNumber id =
+                new AccountNumber("0000000001");
+
+        // Act
+        boolean result =
+                repository.existsById(id);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    void sizeIncreasesAfterSavingNewId() {
         // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
@@ -49,101 +94,31 @@ public class InMemoryRepositoryTest {
         repository.save(account);
 
         // Assert
-        assertEquals(1, repository.size());
-    }
-
-    @Test
-    void existsByIdReturnsTrueForSavedAccount() {
-        // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
-
-        AccountNumber number =
-                new AccountNumber("0000000001");
-
-        BankAccount account =
-                new DebitAccount(
-                        number,
-                        "Ivan",
-                        1000
-                );
-
-        repository.save(account);
-
-        // Act
-        boolean result =
-                repository.existsById(number);
-
-        // Assert
-        assertTrue(result);
-    }
-
-    @Test
-    void existsByIdReturnsFalseForMissingAccount() {
-        // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
-
-        AccountNumber number =
-                new AccountNumber("0000000001");
-
-        // Act
-        boolean result =
-                repository.existsById(number);
-
-        // Assert
-        assertFalse(result);
-    }
-
-    @Test
-    void findByIdReturnsNullWhenAccountDoesNotExist() {
-        // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
-
-        AccountNumber number =
-                new AccountNumber("0000000001");
-
-        // Act
-        BankAccount result =
-                repository.findById(number);
-
-        // Assert
-        assertNull(result);
-    }
-
-    @Test
-    void nullCannotBeSaved() {
-        // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
-
-        // Act + Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> repository.save(null)
+        assertEquals(
+                1,
+                repository.size()
         );
     }
 
     @Test
-    void savingSameIdReplacesOldAccount() {
+    void savingSameIdReplacesOldValue() {
         // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
-        AccountNumber number =
+        AccountNumber id =
                 new AccountNumber("0000000001");
 
         BankAccount oldAccount =
                 new DebitAccount(
-                        number,
+                        id,
                         "Ivan",
                         1000
                 );
 
         BankAccount newAccount =
                 new DebitAccount(
-                        number,
+                        id,
                         "Petr",
                         5000
                 );
@@ -152,11 +127,113 @@ public class InMemoryRepositoryTest {
         repository.save(oldAccount);
         repository.save(newAccount);
 
-        BankAccount result =
-                repository.findById(number);
+        // Assert
+        assertEquals(
+                1,
+                repository.size()
+        );
+
+        assertSame(
+                newAccount,
+                repository.findById(id)
+        );
+    }
+
+    @Test
+    void deleteByIdRemovesExistingAccount() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        AccountNumber id =
+                new AccountNumber("0000000001");
+
+        BankAccount account =
+                new DebitAccount(
+                        id,
+                        "Ivan",
+                        1000
+                );
+
+        repository.save(account);
+
+        // Act
+        boolean result =
+                repository.deleteById(id);
 
         // Assert
-        assertSame(newAccount, result);
-        assertEquals(1, repository.size());
+        assertTrue(result);
+        assertFalse(repository.existsById(id));
+        assertNull(repository.findById(id));
+        assertEquals(0, repository.size());
+    }
+
+    @Test
+    void deleteByIdReturnsFalseForMissingId() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        AccountNumber id =
+                new AccountNumber("0000000001");
+
+        // Act
+        boolean result =
+                repository.deleteById(id);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    void findAllReturnsAllSavedAccounts() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankAccount first =
+                new DebitAccount(
+                        new AccountNumber("0000000001"),
+                        "Ivan",
+                        1000
+                );
+
+        BankAccount second =
+                new DebitAccount(
+                        new AccountNumber("0000000002"),
+                        "Petr",
+                        2000
+                );
+
+        repository.save(first);
+        repository.save(second);
+
+        // Act
+        List<BankAccount> result =
+                repository.findAll();
+
+        // Assert
+        assertEquals(2, result.size());
+        assertTrue(result.contains(first));
+        assertTrue(result.contains(second));
+    }
+
+    @Test
+    void saveNullIsForbidden() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        // Act + Assert
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> repository.save(null)
+                );
+
+        assertEquals(
+                "Value must not be null",
+                exception.getMessage()
+        );
     }
 }
