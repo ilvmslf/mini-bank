@@ -6,13 +6,16 @@ public class TransferService {
 
     private final CommissionPolicy commissionPolicy;
     private final NotificationService notificationService;
+    private final BlockedAccountRegistry blockedAccounts;
 
     public TransferService(
             CommissionPolicy commissionPolicy,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            BlockedAccountRegistry blockedAccounts) {
 
         this.commissionPolicy = commissionPolicy;
         this.notificationService = notificationService;
+        this.blockedAccounts = blockedAccounts;
     }
 
     public void transfer(
@@ -38,8 +41,17 @@ public class TransferService {
             );
         }
 
-        double commission = commissionPolicy.calculate(amount);
-        double totalAmount = amount + commission;
+        if (blockedAccounts.isBlocked(from.getId())) {
+            throw new IllegalStateException(
+                    "Source account is blocked"
+            );
+        }
+
+        double commission =
+                commissionPolicy.calculate(amount);
+
+        double totalAmount =
+                amount + commission;
 
         from.withdraw(totalAmount);
 

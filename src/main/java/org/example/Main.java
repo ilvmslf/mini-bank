@@ -16,10 +16,15 @@ public class Main {
                 2000
         );
 
-        TransferService transferService = new TransferService(
-                new NoCommission(),
-                new ConsoleNotificationService()
-        );
+        BlockedAccountRegistry blockedAccounts =
+                new BlockedAccountRegistry();
+
+        TransferService transferService =
+                new TransferService(
+                        new NoCommission(),
+                        new ConsoleNotificationService(),
+                        blockedAccounts
+                );
 
         try {
             transferService.transfer(from, to, 5000);
@@ -35,7 +40,12 @@ public class Main {
             );
         }
 
-        System.out.println("From balance: " + from.getBalance());
-        System.out.println("To balance: " + to.getBalance());
+        System.out.println(
+                "From balance: " + from.getBalance()
+        );
+
+        System.out.println(
+                "To balance: " + to.getBalance()
+        );
     }
 }
