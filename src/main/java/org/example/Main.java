@@ -19,21 +19,29 @@ public class Main {
         BlockedAccountRegistry blockedAccounts =
                 new BlockedAccountRegistry();
 
+        TransactionJournal journal =
+                new TransactionJournal();
+
         TransferService transferService =
                 new TransferService(
                         new NoCommission(),
                         new ConsoleNotificationService(),
-                        blockedAccounts
+                        blockedAccounts,
+                        journal
                 );
 
         try {
-            transferService.transfer(from, to, 5000);
+            transferService.transfer(
+                    from,
+                    to,
+                    1000
+            );
 
             System.out.println(
                     "Transfer completed"
             );
 
-        } catch (InsufficientFundsException e) {
+        } catch (RuntimeException e) {
 
             System.out.println(
                     "Transfer failed: " + e.getMessage()
@@ -46,6 +54,10 @@ public class Main {
 
         System.out.println(
                 "To balance: " + to.getBalance()
+        );
+
+        System.out.println(
+                "Journal size: " + journal.size()
         );
     }
 }

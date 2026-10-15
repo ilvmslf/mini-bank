@@ -2,6 +2,8 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TransferServiceTest {
@@ -23,7 +25,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 3000);
@@ -49,17 +52,23 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> service.transfer(from, to, -100)
-        );
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> service.transfer(
+                                from,
+                                to,
+                                -100
+                        )
+                );
 
         assertEquals(
                 "Amount must be positive",
-                ex.getMessage()
+                exception.getMessage()
         );
 
         assertEquals(5000, from.getBalance());
@@ -83,7 +92,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         assertThrows(
@@ -106,16 +116,23 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service.transfer(
-                        account,
-                        account,
-                        1000
-                )
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> service.transfer(
+                                account,
+                                account,
+                                1000
+                        )
+                );
+
+        assertEquals(
+                "Cannot transfer to the same account",
+                exception.getMessage()
         );
 
         assertEquals(5000, account.getBalance());
@@ -138,17 +155,23 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
-        InsufficientFundsException ex = assertThrows(
-                InsufficientFundsException.class,
-                () -> service.transfer(from, to, 5000)
-        );
+        InsufficientFundsException exception =
+                assertThrows(
+                        InsufficientFundsException.class,
+                        () -> service.transfer(
+                                from,
+                                to,
+                                5000
+                        )
+                );
 
         assertEquals(
                 "Insufficient funds",
-                ex.getMessage()
+                exception.getMessage()
         );
     }
 
@@ -169,12 +192,23 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
-        assertThrows(
-                TransferLimitExceededException.class,
-                () -> service.transfer(from, to, 50001)
+        TransferLimitExceededException exception =
+                assertThrows(
+                        TransferLimitExceededException.class,
+                        () -> service.transfer(
+                                from,
+                                to,
+                                50001
+                        )
+                );
+
+        assertEquals(
+                "Transfer limit exceeded",
+                exception.getMessage()
         );
 
         assertEquals(100000, from.getBalance());
@@ -198,12 +232,17 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         assertThrows(
                 InsufficientFundsException.class,
-                () -> service.transfer(from, to, 5000)
+                () -> service.transfer(
+                        from,
+                        to,
+                        5000
+                )
         );
 
         assertEquals(1000, from.getBalance());
@@ -227,13 +266,48 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new PercentCommission(1),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 10000);
 
         assertEquals(9900, from.getBalance());
         assertEquals(10000, to.getBalance());
+    }
+
+    @Test
+    void transferFailsIfBalanceIsNotEnoughWithCommission() {
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000
+        );
+
+        TransferService service = new TransferService(
+                new PercentCommission(1),
+                new ConsoleNotificationService(),
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
+        );
+
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> service.transfer(
+                        from,
+                        to,
+                        10000
+                )
+        );
+
+        assertEquals(10000, from.getBalance());
+        assertEquals(2000, to.getBalance());
     }
 
     @Test
@@ -253,7 +327,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 2000);
@@ -280,7 +355,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 2000);
@@ -307,7 +383,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 3000);
@@ -334,7 +411,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 3000);
@@ -363,7 +441,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 notificationService,
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 3000);
@@ -394,12 +473,17 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 notificationService,
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         assertThrows(
                 InsufficientFundsException.class,
-                () -> service.transfer(from, to, 3000)
+                () -> service.transfer(
+                        from,
+                        to,
+                        3000
+                )
         );
 
         assertEquals(
@@ -428,7 +512,8 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 notificationService,
-                new BlockedAccountRegistry()
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
         );
 
         service.transfer(from, to, 3000);
@@ -464,17 +549,23 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 notificationService,
-                blockedAccounts
+                blockedAccounts,
+                new TransactionJournal()
         );
 
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.transfer(from, to, 1000)
-        );
+        IllegalStateException exception =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> service.transfer(
+                                from,
+                                to,
+                                1000
+                        )
+                );
 
         assertEquals(
                 "Source account is blocked",
-                ex.getMessage()
+                exception.getMessage()
         );
     }
 
@@ -500,12 +591,17 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 new ConsoleNotificationService(),
-                blockedAccounts
+                blockedAccounts,
+                new TransactionJournal()
         );
 
         assertThrows(
                 IllegalStateException.class,
-                () -> service.transfer(from, to, 1000)
+                () -> service.transfer(
+                        from,
+                        to,
+                        1000
+                )
         );
 
         assertEquals(5000, from.getBalance());
@@ -537,17 +633,113 @@ public class TransferServiceTest {
         TransferService service = new TransferService(
                 new NoCommission(),
                 notificationService,
-                blockedAccounts
+                blockedAccounts,
+                new TransactionJournal()
         );
 
         assertThrows(
                 IllegalStateException.class,
-                () -> service.transfer(from, to, 1000)
+                () -> service.transfer(
+                        from,
+                        to,
+                        1000
+                )
         );
 
         assertEquals(
                 0,
                 notificationService.getNotificationCount()
         );
+    }
+
+    @Test
+    void successfulTransferIsAddedToJournal() {
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        TransactionJournal journal =
+                new TransactionJournal();
+
+        TransferService service = new TransferService(
+                new NoCommission(),
+                new ConsoleNotificationService(),
+                new BlockedAccountRegistry(),
+                journal
+        );
+
+        service.transfer(from, to, 2000);
+
+        assertEquals(1, journal.size());
+
+        List<Transaction> transactions =
+                journal.findAll();
+
+        Transaction transaction =
+                transactions.get(0);
+
+        assertEquals(
+                TransactionType.TRANSFER,
+                transaction.type()
+        );
+
+        assertEquals(
+                from.getId(),
+                transaction.account()
+        );
+
+        assertEquals(
+                2000,
+                transaction.amount()
+        );
+
+        assertEquals(
+                TransactionStatus.SUCCESS,
+                transaction.status()
+        );
+    }
+
+    @Test
+    void failedTransferIsNotAddedToJournal() {
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        TransactionJournal journal =
+                new TransactionJournal();
+
+        TransferService service = new TransferService(
+                new NoCommission(),
+                new ConsoleNotificationService(),
+                new BlockedAccountRegistry(),
+                journal
+        );
+
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> service.transfer(
+                        from,
+                        to,
+                        5000
+                )
+        );
+
+        assertEquals(0, journal.size());
     }
 }
