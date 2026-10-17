@@ -32,7 +32,7 @@ public class TransferService {
             );
         }
 
-        if (from == to) {
+        if (from.equals(to)) {
             throw new IllegalArgumentException(
                     "Cannot transfer to the same account"
             );
