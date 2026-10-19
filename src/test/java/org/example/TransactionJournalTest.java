@@ -298,4 +298,115 @@ public class TransactionJournalTest {
         // Assert
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void addUpdatesJournalAndIndex() {
+        // Arrange
+        TransactionJournal journal =
+                new TransactionJournal();
+
+        AccountNumber number =
+                new AccountNumber("1111111111");
+
+        Transaction transaction =
+                new Transaction(
+                        TransactionType.TRANSFER,
+                        number,
+                        1500,
+                        TransactionStatus.SUCCESS
+                );
+
+        // Act
+        journal.add(transaction);
+
+        // Assert
+        List<Transaction> all =
+                journal.findAll();
+
+        List<Transaction> byAccount =
+                journal.findByAccount(number);
+
+        assertEquals(1, all.size());
+        assertEquals(1, byAccount.size());
+
+        assertSame(
+                transaction,
+                all.get(0)
+        );
+
+        assertSame(
+                transaction,
+                byAccount.get(0)
+        );
+    }
+
+    @Test
+    void findByAccountWorksWithEqualAccountNumber() {
+        // Arrange
+        TransactionJournal journal =
+                new TransactionJournal();
+
+        AccountNumber stored =
+                new AccountNumber("1111111111");
+
+        AccountNumber lookup =
+                new AccountNumber("1111111111");
+
+        Transaction transaction =
+                new Transaction(
+                        TransactionType.TRANSFER,
+                        stored,
+                        1000,
+                        TransactionStatus.SUCCESS
+                );
+
+        journal.add(transaction);
+
+        // Act
+        List<Transaction> result =
+                journal.findByAccount(lookup);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertSame(transaction, result.get(0));
+    }
+
+    @Test
+    void removeRejectedAlsoUpdatesIndex() {
+        // Arrange
+        TransactionJournal journal =
+                new TransactionJournal();
+
+        AccountNumber number =
+                new AccountNumber("1111111111");
+
+        Transaction success =
+                new Transaction(
+                        TransactionType.TRANSFER,
+                        number,
+                        1000,
+                        TransactionStatus.SUCCESS
+                );
+
+        Transaction rejected =
+                new Transaction(
+                        TransactionType.TRANSFER,
+                        number,
+                        2000,
+                        TransactionStatus.REJECTED
+                );
+
+        journal.add(success);
+        journal.add(rejected);
+
+        // Act
+        journal.removeRejected();
+
+        // Assert
+        List<Transaction> result =
+                journal.findByAccount(number);
+
+        assertEquals(1, result.size());
+        assertSame(success, result.get(0));
+    }
 }

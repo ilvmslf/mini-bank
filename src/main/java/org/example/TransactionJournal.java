@@ -9,8 +9,12 @@ public class TransactionJournal {
     private final List<Transaction> transactions =
             new ArrayList<>();
 
+    private TransactionIndex index =
+            new TransactionIndex();
+
     public void add(Transaction transaction) {
         transactions.add(transaction);
+        index.add(transaction);
     }
 
     public List<Transaction> findAll() {
@@ -20,16 +24,7 @@ public class TransactionJournal {
     public List<Transaction> findByAccount(
             AccountNumber number) {
 
-        List<Transaction> result =
-                new ArrayList<>();
-
-        for (Transaction transaction : transactions) {
-            if (transaction.account().equals(number)) {
-                result.add(transaction);
-            }
-        }
-
-        return result;
+        return index.findByAccount(number);
     }
 
     public int size() {
@@ -49,6 +44,16 @@ public class TransactionJournal {
 
                 iterator.remove();
             }
+        }
+
+        rebuildIndex();
+    }
+
+    private void rebuildIndex() {
+        index = new TransactionIndex();
+
+        for (Transaction transaction : transactions) {
+            index.add(transaction);
         }
     }
 }
