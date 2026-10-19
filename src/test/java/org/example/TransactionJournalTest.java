@@ -161,16 +161,8 @@ public class TransactionJournalTest {
                 journal.findAll();
 
         assertEquals(2, transactions.size());
-
-        assertSame(
-                success1,
-                transactions.get(0)
-        );
-
-        assertSame(
-                success2,
-                transactions.get(1)
-        );
+        assertSame(success1, transactions.get(0));
+        assertSame(success2, transactions.get(1));
     }
 
     @Test
@@ -232,5 +224,78 @@ public class TransactionJournalTest {
 
         // Assert
         assertEquals(2, journal.size());
+    }
+
+    @Test
+    void findByAccountReturnsTransactionsForAccount() {
+        // Arrange
+        TransactionJournal journal =
+                new TransactionJournal();
+
+        AccountNumber firstAccount =
+                new AccountNumber("0000000001");
+
+        AccountNumber secondAccount =
+                new AccountNumber("0000000002");
+
+        Transaction first = new Transaction(
+                TransactionType.TRANSFER,
+                firstAccount,
+                1000,
+                TransactionStatus.SUCCESS
+        );
+
+        Transaction second = new Transaction(
+                TransactionType.TRANSFER,
+                secondAccount,
+                2000,
+                TransactionStatus.SUCCESS
+        );
+
+        Transaction third = new Transaction(
+                TransactionType.TRANSFER,
+                firstAccount,
+                3000,
+                TransactionStatus.SUCCESS
+        );
+
+        journal.add(first);
+        journal.add(second);
+        journal.add(third);
+
+        // Act
+        List<Transaction> result =
+                journal.findByAccount(firstAccount);
+
+        // Assert
+        assertEquals(2, result.size());
+        assertSame(first, result.get(0));
+        assertSame(third, result.get(1));
+    }
+
+    @Test
+    void findByAccountReturnsEmptyListForUnknownAccount() {
+        // Arrange
+        TransactionJournal journal =
+                new TransactionJournal();
+
+        Transaction transaction = new Transaction(
+                TransactionType.TRANSFER,
+                new AccountNumber("0000000001"),
+                1000,
+                TransactionStatus.SUCCESS
+        );
+
+        journal.add(transaction);
+
+        AccountNumber unknownAccount =
+                new AccountNumber("0000000002");
+
+        // Act
+        List<Transaction> result =
+                journal.findByAccount(unknownAccount);
+
+        // Assert
+        assertTrue(result.isEmpty());
     }
 }

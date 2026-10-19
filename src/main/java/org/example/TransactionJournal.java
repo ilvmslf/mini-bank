@@ -17,6 +17,21 @@ public class TransactionJournal {
         return new ArrayList<>(transactions);
     }
 
+    public List<Transaction> findByAccount(
+            AccountNumber number) {
+
+        List<Transaction> result =
+                new ArrayList<>();
+
+        for (Transaction transaction : transactions) {
+            if (transaction.account().equals(number)) {
+                result.add(transaction);
+            }
+        }
+
+        return result;
+    }
+
     public int size() {
         return transactions.size();
     }
