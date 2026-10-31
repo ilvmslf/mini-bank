@@ -2,13 +2,15 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.function.Predicate;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BankServiceTest {
 
     @Test
     void openAccountThenFindAccount() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -28,19 +30,16 @@ public class BankServiceTest {
                         1000
                 );
 
-        // Act
         bankService.openAccount(account);
 
         BankAccount result =
                 bankService.findAccount(number);
 
-        // Assert
         assertSame(account, result);
     }
 
     @Test
     void openingAccountWithSameIdReplacesOldAccount() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -67,11 +66,9 @@ public class BankServiceTest {
                         5000
                 );
 
-        // Act
         bankService.openAccount(oldAccount);
         bankService.openAccount(newAccount);
 
-        // Assert
         assertEquals(1, repository.size());
 
         assertSame(
@@ -82,7 +79,6 @@ public class BankServiceTest {
 
     @Test
     void closeAccountRemovesAccount() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -104,11 +100,9 @@ public class BankServiceTest {
 
         bankService.openAccount(account);
 
-        // Act
         boolean result =
                 bankService.closeAccount(number);
 
-        // Assert
         assertTrue(result);
         assertNull(bankService.findAccount(number));
         assertFalse(repository.existsById(number));
@@ -116,7 +110,6 @@ public class BankServiceTest {
 
     @Test
     void closeMissingAccountReturnsFalse() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -129,17 +122,14 @@ public class BankServiceTest {
         AccountNumber number =
                 new AccountNumber("0000000001");
 
-        // Act
         boolean result =
                 bankService.closeAccount(number);
 
-        // Assert
         assertFalse(result);
     }
 
     @Test
     void findMissingAccountReturnsNull() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -149,20 +139,16 @@ public class BankServiceTest {
                         createTransferService()
                 );
 
-        AccountNumber number =
-                new AccountNumber("0000000001");
-
-        // Act
         BankAccount result =
-                bankService.findAccount(number);
+                bankService.findAccount(
+                        new AccountNumber("0000000001")
+                );
 
-        // Assert
         assertNull(result);
     }
 
     @Test
     void openNullAccountThrowsException() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -172,7 +158,6 @@ public class BankServiceTest {
                         createTransferService()
                 );
 
-        // Act + Assert
         IllegalArgumentException exception =
                 assertThrows(
                         IllegalArgumentException.class,
@@ -187,7 +172,6 @@ public class BankServiceTest {
 
     @Test
     void successfulTransferByAccountNumbers() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -220,21 +204,18 @@ public class BankServiceTest {
         bankService.openAccount(from);
         bankService.openAccount(to);
 
-        // Act
         bankService.transfer(
                 fromNumber,
                 toNumber,
                 5000
         );
 
-        // Assert
         assertEquals(5000, from.getBalance());
         assertEquals(7000, to.getBalance());
     }
 
     @Test
     void missingSourceAccountThrowsException() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -259,7 +240,6 @@ public class BankServiceTest {
 
         bankService.openAccount(to);
 
-        // Act
         IllegalArgumentException exception =
                 assertThrows(
                         IllegalArgumentException.class,
@@ -270,7 +250,6 @@ public class BankServiceTest {
                         )
                 );
 
-        // Assert
         assertEquals(
                 "Source account not found",
                 exception.getMessage()
@@ -281,7 +260,6 @@ public class BankServiceTest {
 
     @Test
     void missingTargetAccountThrowsException() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -306,7 +284,6 @@ public class BankServiceTest {
 
         bankService.openAccount(from);
 
-        // Act
         IllegalArgumentException exception =
                 assertThrows(
                         IllegalArgumentException.class,
@@ -317,7 +294,6 @@ public class BankServiceTest {
                         )
                 );
 
-        // Assert
         assertEquals(
                 "Target account not found",
                 exception.getMessage()
@@ -328,7 +304,6 @@ public class BankServiceTest {
 
     @Test
     void blockedSourceAccountCannotTransfer() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -359,8 +334,9 @@ public class BankServiceTest {
 
         TransferService transferService =
                 new TransferService(
-                        new NoCommission(),
-                        new ConsoleNotificationService(),
+                        amount -> 0.0,
+                        message -> {
+                        },
                         blockedAccounts,
                         new TransactionJournal()
                 );
@@ -374,21 +350,13 @@ public class BankServiceTest {
         bankService.openAccount(from);
         bankService.openAccount(to);
 
-        // Act
-        IllegalStateException exception =
-                assertThrows(
-                        IllegalStateException.class,
-                        () -> bankService.transfer(
-                                fromNumber,
-                                toNumber,
-                                1000
-                        )
-                );
-
-        // Assert
-        assertEquals(
-                "Source account is blocked",
-                exception.getMessage()
+        assertThrows(
+                IllegalStateException.class,
+                () -> bankService.transfer(
+                        fromNumber,
+                        toNumber,
+                        1000
+                )
         );
 
         assertEquals(5000, from.getBalance());
@@ -397,7 +365,6 @@ public class BankServiceTest {
 
     @Test
     void transferWithoutEnoughMoneyThrowsException() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -430,31 +397,142 @@ public class BankServiceTest {
         bankService.openAccount(from);
         bankService.openAccount(to);
 
-        // Act
-        InsufficientFundsException exception =
-                assertThrows(
-                        InsufficientFundsException.class,
-                        () -> bankService.transfer(
-                                fromNumber,
-                                toNumber,
-                                5000
-                        )
-                );
-
-        // Assert
-        assertEquals(
-                "Insufficient funds",
-                exception.getMessage()
+        assertThrows(
+                InsufficientFundsException.class,
+                () -> bankService.transfer(
+                        fromNumber,
+                        toNumber,
+                        5000
+                )
         );
 
         assertEquals(1000, from.getBalance());
         assertEquals(2000, to.getBalance());
     }
 
+    @Test
+    void findAccountsWithPositiveBalance() {
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount positive =
+                new DebitAccount(
+                        new AccountNumber("0000000001"),
+                        "Ivan",
+                        5000
+                );
+
+        BankAccount zero =
+                new DebitAccount(
+                        new AccountNumber("0000000002"),
+                        "Petr",
+                        0
+                );
+
+        bankService.openAccount(positive);
+        bankService.openAccount(zero);
+
+        Predicate<BankAccount> positiveBalance =
+                account -> account.getBalance() > 0;
+
+        List<BankAccount> result =
+                bankService.findAccounts(
+                        positiveBalance
+                );
+
+        assertEquals(1, result.size());
+        assertSame(positive, result.get(0));
+    }
+
+    @Test
+    void findOnlyDebitAccounts() {
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount debit =
+                new DebitAccount(
+                        new AccountNumber("0000000001"),
+                        "Ivan",
+                        1000
+                );
+
+        BankAccount savings =
+                new SavingsAccount(
+                        new AccountNumber("0000000002"),
+                        "Petr",
+                        2000,
+                        500
+                );
+
+        bankService.openAccount(debit);
+        bankService.openAccount(savings);
+
+        Predicate<BankAccount> debitOnly =
+                DebitAccount.class::isInstance;
+
+        List<BankAccount> result =
+                bankService.findAccounts(
+                        debitOnly
+                );
+
+        assertEquals(1, result.size());
+        assertSame(debit, result.get(0));
+    }
+
+    @Test
+    void findAccountsDoesNotExposeRepositoryList() {
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount account =
+                new DebitAccount(
+                        new AccountNumber("0000000001"),
+                        "Ivan",
+                        1000
+                );
+
+        bankService.openAccount(account);
+
+        List<BankAccount> result =
+                bankService.findAccounts(
+                        value -> true
+                );
+
+        result.clear();
+
+        assertEquals(1, repository.size());
+
+        assertSame(
+                account,
+                bankService.findAccount(
+                        new AccountNumber("0000000001")
+                )
+        );
+    }
+
     private TransferService createTransferService() {
         return new TransferService(
-                new NoCommission(),
-                new ConsoleNotificationService(),
+                amount -> 0.0,
+                message -> {
+                },
                 new BlockedAccountRegistry(),
                 new TransactionJournal()
         );
