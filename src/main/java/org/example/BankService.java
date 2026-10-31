@@ -1,5 +1,7 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -39,6 +41,19 @@ public class BankService {
                 accounts.findAll(),
                 condition
         );
+    }
+
+    public List<BankAccount> sortedAccounts(
+            Comparator<? super BankAccount> comparator) {
+
+        List<BankAccount> result =
+                new ArrayList<>(
+                        accounts.findAll()
+                );
+
+        result.sort(comparator);
+
+        return result;
     }
 
     public boolean closeAccount(

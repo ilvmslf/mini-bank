@@ -2,6 +2,7 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -530,7 +531,6 @@ public class BankServiceTest {
 
     @Test
     void findAccountsWithBalanceAtLeastMinimum() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -560,18 +560,15 @@ public class BankServiceTest {
         Predicate<BankAccount> balanceAtLeast =
                 account -> account.getBalance() >= minimum;
 
-        // Act
         List<BankAccount> result =
                 bankService.findAccounts(balanceAtLeast);
 
-        // Assert
         assertEquals(1, result.size());
         assertSame(rich, result.get(0));
     }
 
     @Test
     void findNotBlockedAccounts() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -615,18 +612,15 @@ public class BankServiceTest {
                         account.getId()
                 );
 
-        // Act
         List<BankAccount> result =
                 bankService.findAccounts(notBlocked);
 
-        // Assert
         assertEquals(1, result.size());
         assertSame(second, result.get(0));
     }
 
     @Test
     void findRichAndNotBlockedDebitAccounts() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -698,18 +692,15 @@ public class BankServiceTest {
         Predicate<BankAccount> candidates =
                 rich.and(notBlocked).and(debit);
 
-        // Act
         List<BankAccount> result =
                 bankService.findAccounts(candidates);
 
-        // Assert
         assertEquals(1, result.size());
         assertSame(richDebit, result.get(0));
     }
 
     @Test
     void findAccountsThatAreNotDebitAccounts() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -749,11 +740,9 @@ public class BankServiceTest {
         Predicate<BankAccount> notDebit =
                 debitOnly.negate();
 
-        // Act
         List<BankAccount> result =
                 bankService.findAccounts(notDebit);
 
-        // Assert
         assertEquals(2, result.size());
         assertTrue(result.contains(savings));
         assertTrue(result.contains(credit));
@@ -762,7 +751,6 @@ public class BankServiceTest {
 
     @Test
     void findRichOrCreditAccounts() {
-        // Arrange
         Repository<AccountNumber, BankAccount> repository =
                 new InMemoryRepository<>();
 
@@ -805,23 +793,345 @@ public class BankServiceTest {
         Predicate<BankAccount> richOrCredit =
                 rich.or(credit);
 
-        // Act
         List<BankAccount> result =
                 bankService.findAccounts(richOrCredit);
 
-        // Assert
         assertEquals(2, result.size());
+        assertTrue(result.contains(richDebit));
+        assertTrue(result.contains(poorCredit));
+        assertFalse(result.contains(poorDebit));
+    }
 
-        assertTrue(
-                result.contains(richDebit)
+    @Test
+    void sortedAccountsByBalanceAscending() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount first = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
         );
 
-        assertTrue(
-                result.contains(poorCredit)
+        BankAccount second = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
         );
 
-        assertFalse(
-                result.contains(poorDebit)
+        BankAccount third = new DebitAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                3000
+        );
+
+        bankService.openAccount(first);
+        bankService.openAccount(second);
+        bankService.openAccount(third);
+
+        Comparator<BankAccount> byBalance =
+                Comparator.comparingDouble(
+                        BankAccount::getBalance
+                );
+
+        // Act
+        List<BankAccount> result =
+                bankService.sortedAccounts(byBalance);
+
+        // Assert
+        assertEquals(3, result.size());
+        assertSame(second, result.get(0));
+        assertSame(third, result.get(1));
+        assertSame(first, result.get(2));
+    }
+
+    @Test
+    void sortedAccountsByBalanceDescending() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount first = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount second = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        BankAccount third = new DebitAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                3000
+        );
+
+        bankService.openAccount(first);
+        bankService.openAccount(second);
+        bankService.openAccount(third);
+
+        Comparator<BankAccount> byBalance =
+                Comparator.comparingDouble(
+                        BankAccount::getBalance
+                );
+
+        Comparator<BankAccount> byBalanceDesc =
+                byBalance.reversed();
+
+        // Act
+        List<BankAccount> result =
+                bankService.sortedAccounts(
+                        byBalanceDesc
+                );
+
+        // Assert
+        assertEquals(3, result.size());
+        assertSame(first, result.get(0));
+        assertSame(third, result.get(1));
+        assertSame(second, result.get(2));
+    }
+
+    @Test
+    void sortedAccountsByAccountNumber() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount first = new DebitAccount(
+                new AccountNumber("3333333333"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount second = new DebitAccount(
+                new AccountNumber("1111111111"),
+                "Petr",
+                2000
+        );
+
+        BankAccount third = new DebitAccount(
+                new AccountNumber("2222222222"),
+                "Alex",
+                3000
+        );
+
+        bankService.openAccount(first);
+        bankService.openAccount(second);
+        bankService.openAccount(third);
+
+        Comparator<BankAccount> byNumber =
+                Comparator.comparing(
+                        account ->
+                                account.getId().value()
+                );
+
+        // Act
+        List<BankAccount> result =
+                bankService.sortedAccounts(
+                        byNumber
+                );
+
+        // Assert
+        assertEquals(3, result.size());
+
+        assertEquals(
+                "1111111111",
+                result.get(0).getId().value()
+        );
+
+        assertEquals(
+                "2222222222",
+                result.get(1).getId().value()
+        );
+
+        assertEquals(
+                "3333333333",
+                result.get(2).getId().value()
+        );
+    }
+
+    @Test
+    void sortedAccountsByTypeThenBalance() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount debitHigh = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount debitLow = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        BankAccount credit = new CreditAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                3000,
+                5000
+        );
+
+        BankAccount savings = new SavingsAccount(
+                new AccountNumber("0000000004"),
+                "Max",
+                2000,
+                500
+        );
+
+        bankService.openAccount(debitHigh);
+        bankService.openAccount(debitLow);
+        bankService.openAccount(credit);
+        bankService.openAccount(savings);
+
+        Comparator<BankAccount> byTypeThenBalance =
+                Comparator
+                        .comparing(
+                                (BankAccount account) ->
+                                        account
+                                                .getClass()
+                                                .getSimpleName()
+                        )
+                        .thenComparingDouble(
+                                BankAccount::getBalance
+                        );
+
+        // Act
+        List<BankAccount> result =
+                bankService.sortedAccounts(
+                        byTypeThenBalance
+                );
+
+        // Assert
+        assertEquals(4, result.size());
+
+        assertSame(
+                credit,
+                result.get(0)
+        );
+
+        assertSame(
+                debitLow,
+                result.get(1)
+        );
+
+        assertSame(
+                debitHigh,
+                result.get(2)
+        );
+
+        assertSame(
+                savings,
+                result.get(3)
+        );
+    }
+
+    @Test
+    void sortingDoesNotChangeRepositoryContents() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount first = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount second = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        BankAccount third = new DebitAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                3000
+        );
+
+        bankService.openAccount(first);
+        bankService.openAccount(second);
+        bankService.openAccount(third);
+
+        List<BankAccount> beforeSorting =
+                repository.findAll();
+
+        Comparator<BankAccount> byBalance =
+                Comparator.comparingDouble(
+                        BankAccount::getBalance
+                );
+
+        // Act
+        List<BankAccount> sorted =
+                bankService.sortedAccounts(byBalance);
+
+        sorted.clear();
+
+        // Assert
+        assertEquals(3, repository.size());
+
+        assertTrue(
+                repository.findAll()
+                        .containsAll(beforeSorting)
+        );
+
+        assertSame(
+                first,
+                repository.findById(
+                        first.getId()
+                )
+        );
+
+        assertSame(
+                second,
+                repository.findById(
+                        second.getId()
+                )
+        );
+
+        assertSame(
+                third,
+                repository.findById(
+                        third.getId()
+                )
         );
     }
 
