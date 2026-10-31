@@ -528,6 +528,303 @@ public class BankServiceTest {
         );
     }
 
+    @Test
+    void findAccountsWithBalanceAtLeastMinimum() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount poor = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                50000
+        );
+
+        BankAccount rich = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                150000
+        );
+
+        bankService.openAccount(poor);
+        bankService.openAccount(rich);
+
+        double minimum = 100000;
+
+        Predicate<BankAccount> balanceAtLeast =
+                account -> account.getBalance() >= minimum;
+
+        // Act
+        List<BankAccount> result =
+                bankService.findAccounts(balanceAtLeast);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertSame(rich, result.get(0));
+    }
+
+    @Test
+    void findNotBlockedAccounts() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BlockedAccountRegistry blockedAccounts =
+                new BlockedAccountRegistry();
+
+        TransferService transferService =
+                new TransferService(
+                        amount -> 0.0,
+                        message -> {
+                        },
+                        blockedAccounts,
+                        new TransactionJournal()
+                );
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        transferService
+                );
+
+        BankAccount first = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount second = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000
+        );
+
+        bankService.openAccount(first);
+        bankService.openAccount(second);
+
+        blockedAccounts.block(first.getId());
+
+        Predicate<BankAccount> notBlocked =
+                account -> !blockedAccounts.isBlocked(
+                        account.getId()
+                );
+
+        // Act
+        List<BankAccount> result =
+                bankService.findAccounts(notBlocked);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertSame(second, result.get(0));
+    }
+
+    @Test
+    void findRichAndNotBlockedDebitAccounts() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BlockedAccountRegistry blockedAccounts =
+                new BlockedAccountRegistry();
+
+        TransferService transferService =
+                new TransferService(
+                        amount -> 0.0,
+                        message -> {
+                        },
+                        blockedAccounts,
+                        new TransactionJournal()
+                );
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        transferService
+                );
+
+        BankAccount richDebit = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                150000
+        );
+
+        BankAccount blockedRichDebit = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                200000
+        );
+
+        BankAccount richCredit = new CreditAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                300000,
+                50000
+        );
+
+        BankAccount poorDebit = new DebitAccount(
+                new AccountNumber("0000000004"),
+                "Max",
+                50000
+        );
+
+        bankService.openAccount(richDebit);
+        bankService.openAccount(blockedRichDebit);
+        bankService.openAccount(richCredit);
+        bankService.openAccount(poorDebit);
+
+        blockedAccounts.block(
+                blockedRichDebit.getId()
+        );
+
+        Predicate<BankAccount> rich =
+                account ->
+                        account.getBalance() >= 100000;
+
+        Predicate<BankAccount> notBlocked =
+                account ->
+                        !blockedAccounts.isBlocked(
+                                account.getId()
+                        );
+
+        Predicate<BankAccount> debit =
+                DebitAccount.class::isInstance;
+
+        Predicate<BankAccount> candidates =
+                rich.and(notBlocked).and(debit);
+
+        // Act
+        List<BankAccount> result =
+                bankService.findAccounts(candidates);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertSame(richDebit, result.get(0));
+    }
+
+    @Test
+    void findAccountsThatAreNotDebitAccounts() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount debit = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                1000
+        );
+
+        BankAccount savings = new SavingsAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                2000,
+                500
+        );
+
+        BankAccount credit = new CreditAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                3000,
+                5000
+        );
+
+        bankService.openAccount(debit);
+        bankService.openAccount(savings);
+        bankService.openAccount(credit);
+
+        Predicate<BankAccount> debitOnly =
+                DebitAccount.class::isInstance;
+
+        Predicate<BankAccount> notDebit =
+                debitOnly.negate();
+
+        // Act
+        List<BankAccount> result =
+                bankService.findAccounts(notDebit);
+
+        // Assert
+        assertEquals(2, result.size());
+        assertTrue(result.contains(savings));
+        assertTrue(result.contains(credit));
+        assertFalse(result.contains(debit));
+    }
+
+    @Test
+    void findRichOrCreditAccounts() {
+        // Arrange
+        Repository<AccountNumber, BankAccount> repository =
+                new InMemoryRepository<>();
+
+        BankService bankService =
+                new BankService(
+                        repository,
+                        createTransferService()
+                );
+
+        BankAccount richDebit = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                150000
+        );
+
+        BankAccount poorDebit = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                10000
+        );
+
+        BankAccount poorCredit = new CreditAccount(
+                new AccountNumber("0000000003"),
+                "Alex",
+                20000,
+                50000
+        );
+
+        bankService.openAccount(richDebit);
+        bankService.openAccount(poorDebit);
+        bankService.openAccount(poorCredit);
+
+        Predicate<BankAccount> rich =
+                account ->
+                        account.getBalance() >= 100000;
+
+        Predicate<BankAccount> credit =
+                CreditAccount.class::isInstance;
+
+        Predicate<BankAccount> richOrCredit =
+                rich.or(credit);
+
+        // Act
+        List<BankAccount> result =
+                bankService.findAccounts(richOrCredit);
+
+        // Assert
+        assertEquals(2, result.size());
+
+        assertTrue(
+                result.contains(richDebit)
+        );
+
+        assertTrue(
+                result.contains(poorCredit)
+        );
+
+        assertFalse(
+                result.contains(poorDebit)
+        );
+    }
+
     private TransferService createTransferService() {
         return new TransferService(
                 amount -> 0.0,
