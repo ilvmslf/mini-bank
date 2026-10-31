@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -214,5 +215,103 @@ public class CollectionFunctionsMapTest {
 
         // Assert
         assertEquals(1, accounts.size());
+    }
+
+    @Test
+    void forEachPerformsActionForEverySummary() {
+        // Arrange
+        List<AccountSummary> summaries =
+                new ArrayList<>();
+
+        AccountSummary first =
+                new AccountSummary(
+                        new AccountNumber("1111111111"),
+                        "DebitAccount",
+                        1000
+                );
+
+        AccountSummary second =
+                new AccountSummary(
+                        new AccountNumber("2222222222"),
+                        "CreditAccount",
+                        2000
+                );
+
+        summaries.add(first);
+        summaries.add(second);
+
+        List<AccountSummary> processed =
+                new ArrayList<>();
+
+        Consumer<AccountSummary> action =
+                summary -> processed.add(summary);
+
+        // Act
+        CollectionFunctions.forEach(
+                summaries,
+                action
+        );
+
+        // Assert
+        assertEquals(2, processed.size());
+        assertSame(first, processed.get(0));
+        assertSame(second, processed.get(1));
+    }
+
+    @Test
+    void forEachWorksWithLambdaPrinter() {
+        // Arrange
+        List<AccountSummary> summaries =
+                new ArrayList<>();
+
+        summaries.add(
+                new AccountSummary(
+                        new AccountNumber("1111111111"),
+                        "DebitAccount",
+                        1000
+                )
+        );
+
+        Consumer<AccountSummary> printer =
+                summary -> System.out.println(summary);
+
+        // Act + Assert
+        assertDoesNotThrow(
+                () -> CollectionFunctions.forEach(
+                        summaries,
+                        printer
+                )
+        );
+    }
+
+    @Test
+    void forEachWorksWithMethodReference() {
+        // Arrange
+        List<AccountSummary> summaries =
+                new ArrayList<>();
+
+        summaries.add(
+                new AccountSummary(
+                        new AccountNumber("1111111111"),
+                        "DebitAccount",
+                        1000
+                )
+        );
+
+        summaries.add(
+                new AccountSummary(
+                        new AccountNumber("2222222222"),
+                        "CreditAccount",
+                        2000
+                )
+        );
+
+        // Act + Assert
+        assertDoesNotThrow(
+                () -> CollectionFunctions.forEach(
+                        summaries,
+                        System.out::println
+                )
+        );
     }
 }
