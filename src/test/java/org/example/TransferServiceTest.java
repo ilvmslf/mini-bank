@@ -742,4 +742,152 @@ public class TransferServiceTest {
 
         assertEquals(0, journal.size());
     }
+
+    @Test
+    void transferWithoutCommissionUsingLambda() {
+        // Arrange
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        CommissionPolicy noCommission =
+                amount -> 0.0;
+
+        NotificationService notification =
+                message -> {
+                };
+
+        TransferService service = new TransferService(
+                noCommission,
+                notification,
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
+        );
+
+        // Act
+        service.transfer(from, to, 2000);
+
+        // Assert
+        assertEquals(3000, from.getBalance());
+        assertEquals(3000, to.getBalance());
+    }
+
+    @Test
+    void transferWithOnePercentCommissionUsingLambda() {
+        // Arrange
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                10000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        CommissionPolicy onePercent =
+                amount -> amount * 0.01;
+
+        NotificationService notification =
+                message -> {
+                };
+
+        TransferService service = new TransferService(
+                onePercent,
+                notification,
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
+        );
+
+        // Act
+        service.transfer(from, to, 2000);
+
+        // Assert
+        assertEquals(7980, from.getBalance());
+        assertEquals(3000, to.getBalance());
+    }
+
+    @Test
+    void notificationWorksWithLambda() {
+        // Arrange
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        StringBuilder messageHolder =
+                new StringBuilder();
+
+        NotificationService notification =
+                message -> messageHolder.append(message);
+
+        TransferService service = new TransferService(
+                amount -> 0.0,
+                notification,
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
+        );
+
+        // Act
+        service.transfer(from, to, 1000);
+
+        // Assert
+        assertEquals(
+                "Transfer 1000.0 completed",
+                messageHolder.toString()
+        );
+    }
+
+    @Test
+    void notificationWorksWithMethodReference() {
+        // Arrange
+        BankAccount from = new DebitAccount(
+                new AccountNumber("0000000001"),
+                "Ivan",
+                5000
+        );
+
+        BankAccount to = new DebitAccount(
+                new AccountNumber("0000000002"),
+                "Petr",
+                1000
+        );
+
+        CommissionPolicy noCommission =
+                amount -> 0.0;
+
+        NotificationService console =
+                System.out::println;
+
+        TransferService service = new TransferService(
+                noCommission,
+                console,
+                new BlockedAccountRegistry(),
+                new TransactionJournal()
+        );
+
+        // Act
+        service.transfer(from, to, 1000);
+
+        // Assert
+        assertEquals(4000, from.getBalance());
+        assertEquals(2000, to.getBalance());
+    }
 }
