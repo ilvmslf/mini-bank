@@ -43,6 +43,36 @@ public class BankService {
         );
     }
 
+    public List<BankAccount> findRichAccounts(
+            double minBalance) {
+
+        return accounts.findAll()
+                .stream()
+                .filter(account ->
+                        account.getBalance() >= minBalance
+                )
+                .toList();
+    }
+
+    public List<BankAccount> findDebitAccounts() {
+
+        return accounts.findAll()
+                .stream()
+                .filter(DebitAccount.class::isInstance)
+                .toList();
+    }
+
+    public List<BankAccount> findAccountsByOwner(
+            String owner) {
+
+        return accounts.findAll()
+                .stream()
+                .filter(account ->
+                        account.getOwner().equals(owner)
+                )
+                .toList();
+    }
+
     public List<BankAccount> sortedAccounts(
             Comparator<? super BankAccount> comparator) {
 
