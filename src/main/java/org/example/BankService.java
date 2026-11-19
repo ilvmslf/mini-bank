@@ -153,6 +153,35 @@ public class BankService {
                 .toList();
     }
 
+    public boolean hasBlockedAccounts() {
+
+        return accounts.findAll()
+                .stream()
+                .anyMatch(account ->
+                        transferService.isBlocked(
+                                account.getId()
+                        )
+                );
+    }
+
+    public boolean allAccountsPositive() {
+
+        return accounts.findAll()
+                .stream()
+                .allMatch(account ->
+                        account.getBalance() > 0
+                );
+    }
+
+    public boolean noCreditAccounts() {
+
+        return accounts.findAll()
+                .stream()
+                .noneMatch(
+                        CreditAccount.class::isInstance
+                );
+    }
+
     public List<BankAccount> sortedAccounts(
             Comparator<? super BankAccount> comparator) {
 

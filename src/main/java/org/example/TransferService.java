@@ -21,6 +21,12 @@ public class TransferService {
         this.journal = journal;
     }
 
+    public boolean isBlocked(
+            AccountNumber number) {
+
+        return blockedAccounts.isBlocked(number);
+    }
+
     public void transfer(
             BankAccount from,
             BankAccount to,
@@ -32,7 +38,7 @@ public class TransferService {
             );
         }
 
-        if (from.equals(to)) {
+        if (from == to) {
             throw new IllegalArgumentException(
                     "Cannot transfer to the same account"
             );
