@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.function.Predicate;
 
 public class BankService {
@@ -191,6 +192,37 @@ public class BankService {
                 .stream()
                 .noneMatch(
                         CreditAccount.class::isInstance
+                );
+    }
+
+    public double totalBalance() {
+
+        return accounts.findAll()
+                .stream()
+                .mapToDouble(
+                        BankAccount::getBalance
+                )
+                .sum();
+    }
+
+    public OptionalDouble averageBalance() {
+
+        return accounts.findAll()
+                .stream()
+                .mapToDouble(
+                        BankAccount::getBalance
+                )
+                .average();
+    }
+
+    public Optional<BankAccount> richestAccount() {
+
+        return accounts.findAll()
+                .stream()
+                .max(
+                        Comparator.comparingDouble(
+                                BankAccount::getBalance
+                        )
                 );
     }
 
