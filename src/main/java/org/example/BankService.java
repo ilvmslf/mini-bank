@@ -3,6 +3,7 @@ package org.example;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class BankService {
@@ -52,6 +53,17 @@ public class BankService {
                         account.getBalance() >= minBalance
                 )
                 .toList();
+    }
+
+    public Optional<BankAccount> findFirstRichAccount(
+            double minBalance) {
+
+        return accounts.findAll()
+                .stream()
+                .filter(account ->
+                        account.getBalance() >= minBalance
+                )
+                .findFirst();
     }
 
     public List<BankAccount> findDebitAccounts() {
