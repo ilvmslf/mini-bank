@@ -205,6 +205,17 @@ public class BankService {
                 .sum();
     }
 
+    public double totalBalanceWithReduce() {
+
+        return accounts.findAll()
+                .stream()
+                .map(BankAccount::getBalance)
+                .reduce(
+                        0.0,
+                        Double::sum
+                );
+    }
+
     public OptionalDouble averageBalance() {
 
         return accounts.findAll()
