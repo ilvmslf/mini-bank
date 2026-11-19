@@ -1,5 +1,6 @@
 package org.example;
 
+import java.util.Comparator;
 import java.util.List;
 
 public final class AccountUtils {
@@ -10,13 +11,11 @@ public final class AccountUtils {
     public static double totalBalance(
             List<? extends BankAccount> accounts) {
 
-        double total = 0;
-
-        for (BankAccount account : accounts) {
-            total += account.getBalance();
-        }
-
-        return total;
+        return accounts.stream()
+                .mapToDouble(
+                        BankAccount::getBalance
+                )
+                .sum();
     }
 
     public static void addDemoDebitAccounts(
@@ -43,26 +42,21 @@ public final class AccountUtils {
             List<? extends T> source,
             List<? super T> target) {
 
-        for (T value : source) {
-            target.add(value);
-        }
+        source.stream()
+                .forEach(value ->
+                        target.add(value)
+                );
     }
 
     public static <T extends BankAccount>
     T richest(List<T> accounts) {
 
-        if (accounts.isEmpty()) {
-            return null;
-        }
-
-        T richest = accounts.get(0);
-
-        for (T account : accounts) {
-            if (account.getBalance() > richest.getBalance()) {
-                richest = account;
-            }
-        }
-
-        return richest;
+        return accounts.stream()
+                .max(
+                        Comparator.comparingDouble(
+                                BankAccount::getBalance
+                        )
+                )
+                .orElse(null);
     }
 }
