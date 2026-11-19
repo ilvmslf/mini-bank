@@ -91,6 +91,68 @@ public class BankService {
         );
     }
 
+    public List<BankAccount> richestFirst() {
+
+        return accounts.findAll()
+                .stream()
+                .sorted(
+                        Comparator
+                                .comparingDouble(
+                                        BankAccount::getBalance
+                                )
+                                .reversed()
+                )
+                .toList();
+    }
+
+    public List<BankAccount> accountsByNumber() {
+
+        return accounts.findAll()
+                .stream()
+                .sorted(
+                        Comparator.comparing(
+                                account ->
+                                        account.getId().value()
+                        )
+                )
+                .toList();
+    }
+
+    public List<BankAccount> accountsByTypeThenBalance() {
+
+        return accounts.findAll()
+                .stream()
+                .sorted(
+                        Comparator
+                                .comparing(
+                                        (BankAccount account) ->
+                                                account.getClass()
+                                                        .getSimpleName()
+                                )
+                                .thenComparingDouble(
+                                        BankAccount::getBalance
+                                )
+                )
+                .toList();
+    }
+
+    public List<BankAccount> accountsByOwnerThenNumber() {
+
+        return accounts.findAll()
+                .stream()
+                .sorted(
+                        Comparator
+                                .comparing(
+                                        BankAccount::getOwner
+                                )
+                                .thenComparing(
+                                        account ->
+                                                account.getId().value()
+                                )
+                )
+                .toList();
+    }
+
     public List<BankAccount> sortedAccounts(
             Comparator<? super BankAccount> comparator) {
 
