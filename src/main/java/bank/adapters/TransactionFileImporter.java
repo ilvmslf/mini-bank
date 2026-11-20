@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class TransactionFileImporter {
 
@@ -38,6 +39,30 @@ public class TransactionFileImporter {
                 )
                 .map(this::parseLine)
                 .toList();
+    }
+
+    public long countSuccessful(
+            Path path)
+            throws IOException {
+
+        if (path == null) {
+            throw new IllegalArgumentException(
+                    "Path must not be null"
+            );
+        }
+
+        try (Stream<String> lines =
+                     Files.lines(
+                             path,
+                             StandardCharsets.UTF_8
+                     )) {
+
+            return lines
+                    .filter(line ->
+                            line.contains("SUCCESS")
+                    )
+                    .count();
+        }
     }
 
     private TransactionDto parseLine(
