@@ -1,5 +1,6 @@
 package bank.application;
 
+import bank.application.annotation.Audited;
 import bank.domain.AccountNumber;
 import bank.domain.BankAccount;
 import bank.domain.CommissionPolicy;
@@ -8,6 +9,7 @@ import bank.domain.TransactionStatus;
 import bank.ports.AccountRepository;
 import bank.ports.NotificationService;
 
+@Audited
 public class TransferApplicationService {
 
     private static final double TRANSFER_LIMIT =

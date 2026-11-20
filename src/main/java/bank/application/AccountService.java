@@ -1,5 +1,6 @@
 package bank.application;
 
+import bank.application.annotation.RequiresRole;
 import bank.domain.AccountNumber;
 import bank.domain.BankAccount;
 import bank.ports.AccountRepository;
@@ -38,5 +39,12 @@ public class AccountService {
             AccountNumber number) {
 
         return accounts.deleteById(number);
+    }
+
+    @RequiresRole("ADMIN")
+    public boolean closeAccount(
+            AccountNumber number) {
+
+        return close(number);
     }
 }
