@@ -5,9 +5,21 @@ public class TransferService {
     private static final double TRANSFER_LIMIT = 50000;
 
     private final CommissionPolicy commissionPolicy;
-    private final NotificationService notificationService;
     private final BlockedAccountRegistry blockedAccounts;
     private final TransactionJournal journal;
+    private final TransferEventPublisher eventPublisher;
+
+    public TransferService(
+            CommissionPolicy commissionPolicy,
+            BlockedAccountRegistry blockedAccounts,
+            TransactionJournal journal,
+            TransferEventPublisher eventPublisher) {
+
+        this.commissionPolicy = commissionPolicy;
+        this.blockedAccounts = blockedAccounts;
+        this.journal = journal;
+        this.eventPublisher = eventPublisher;
+    }
 
     public TransferService(
             CommissionPolicy commissionPolicy,
@@ -16,9 +28,20 @@ public class TransferService {
             TransactionJournal journal) {
 
         this.commissionPolicy = commissionPolicy;
-        this.notificationService = notificationService;
         this.blockedAccounts = blockedAccounts;
         this.journal = journal;
+
+        this.eventPublisher =
+                new TransferEventPublisher();
+
+        this.eventPublisher.subscribe(
+                transaction ->
+                        notificationService.notify(
+                                "Transfer "
+                                        + transaction.amount()
+                                        + " completed"
+                        )
+        );
     }
 
     public boolean isBlocked(
@@ -50,7 +73,9 @@ public class TransferService {
             );
         }
 
-        if (blockedAccounts.isBlocked(from.getId())) {
+        if (blockedAccounts.isBlocked(
+                from.getId())) {
+
             throw new IllegalStateException(
                     "Source account is blocked"
             );
@@ -66,17 +91,18 @@ public class TransferService {
 
         to.deposit(amount);
 
-        journal.add(
+        Transaction transaction =
                 new Transaction(
                         TransactionType.TRANSFER,
                         from.getId(),
                         amount,
                         TransactionStatus.SUCCESS
-                )
-        );
+                );
 
-        notificationService.notify(
-                "Transfer " + amount + " completed"
+        journal.add(transaction);
+
+        eventPublisher.publish(
+                transaction
         );
     }
 }
