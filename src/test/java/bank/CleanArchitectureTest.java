@@ -8,6 +8,7 @@ import bank.domain.AccountNumber;
 import bank.domain.BankAccount;
 import bank.domain.DebitAccount;
 import bank.domain.Transaction;
+import bank.domain.TransactionStatus;
 import bank.ports.AccountRepository;
 import org.junit.jupiter.api.Test;
 
@@ -105,8 +106,28 @@ public class CleanArchitectureTest {
         );
 
         assertEquals(
+                1,
+                transaction.id()
+        );
+
+        assertEquals(
+                from.getId(),
+                transaction.from()
+        );
+
+        assertEquals(
+                to.getId(),
+                transaction.to()
+        );
+
+        assertEquals(
                 2000,
                 transaction.amount()
+        );
+
+        assertEquals(
+                TransactionStatus.SUCCESS,
+                transaction.status()
         );
     }
 
@@ -116,25 +137,32 @@ public class CleanArchitectureTest {
         BankReportService reports =
                 new BankReportService();
 
-        AccountNumber number =
+        AccountNumber from =
                 new AccountNumber(
                         "1111111111"
                 );
 
+        AccountNumber to =
+                new AccountNumber(
+                        "2222222222"
+                );
+
         Transaction first =
                 new Transaction(
-                        bank.domain.TransactionType.TRANSFER,
-                        number,
+                        1,
+                        from,
+                        to,
                         1000,
-                        bank.domain.TransactionStatus.SUCCESS
+                        TransactionStatus.SUCCESS
                 );
 
         Transaction second =
                 new Transaction(
-                        bank.domain.TransactionType.TRANSFER,
-                        number,
+                        2,
+                        from,
+                        to,
                         2000,
-                        bank.domain.TransactionStatus.SUCCESS
+                        TransactionStatus.SUCCESS
                 );
 
         // Act
@@ -149,7 +177,7 @@ public class CleanArchitectureTest {
         // Assert
         assertEquals(
                 2,
-                result.get(number)
+                result.get(from)
         );
     }
 

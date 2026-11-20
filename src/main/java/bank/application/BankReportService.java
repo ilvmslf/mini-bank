@@ -18,7 +18,7 @@ public class BankReportService {
         for (Transaction transaction : transactions) {
 
             AccountNumber number =
-                    transaction.account();
+                    transaction.from();
 
             int old =
                     result.getOrDefault(
@@ -44,7 +44,7 @@ public class BankReportService {
         for (Transaction transaction : transactions) {
 
             AccountNumber number =
-                    transaction.account();
+                    transaction.from();
 
             double old =
                     result.getOrDefault(

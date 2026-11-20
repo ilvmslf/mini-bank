@@ -1,8 +1,9 @@
 package bank.domain;
 
 public record Transaction(
-        TransactionType type,
-        AccountNumber account,
+        long id,
+        AccountNumber from,
+        AccountNumber to,
         double amount,
         TransactionStatus status) {
 }

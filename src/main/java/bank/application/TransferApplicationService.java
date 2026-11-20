@@ -5,7 +5,6 @@ import bank.domain.BankAccount;
 import bank.domain.CommissionPolicy;
 import bank.domain.Transaction;
 import bank.domain.TransactionStatus;
-import bank.domain.TransactionType;
 import bank.ports.AccountRepository;
 import bank.ports.NotificationService;
 
@@ -17,6 +16,8 @@ public class TransferApplicationService {
     private final AccountRepository accounts;
     private final CommissionPolicy commissionPolicy;
     private final NotificationService notificationService;
+
+    private long nextTransactionId = 1;
 
     public TransferApplicationService(
             AccountRepository accounts,
@@ -82,8 +83,9 @@ public class TransferApplicationService {
 
         Transaction transaction =
                 new Transaction(
-                        TransactionType.TRANSFER,
+                        nextTransactionId++,
                         from.getId(),
+                        to.getId(),
                         amount,
                         TransactionStatus.SUCCESS
                 );
