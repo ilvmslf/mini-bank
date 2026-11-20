@@ -1,5 +1,8 @@
 package bank.adapters;
 
+import bank.application.dto.RateDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -11,7 +14,37 @@ public class ExternalRatesClient {
     private final HttpClient client =
             HttpClient.newHttpClient();
 
+    private final ObjectMapper mapper =
+            new ObjectMapper();
+
     public String get(String url)
+            throws IOException,
+            InterruptedException {
+
+        HttpResponse<String> response =
+                sendGet(url);
+
+        return response.body();
+    }
+
+    public RateDto getRate(String url)
+            throws IOException,
+            InterruptedException {
+
+        HttpResponse<String> response =
+                sendGet(url);
+
+        String body =
+                response.body();
+
+        return mapper.readValue(
+                body,
+                RateDto.class
+        );
+    }
+
+    private HttpResponse<String> sendGet(
+            String url)
             throws IOException,
             InterruptedException {
 
@@ -43,6 +76,6 @@ public class ExternalRatesClient {
             );
         }
 
-        return response.body();
+        return response;
     }
 }
