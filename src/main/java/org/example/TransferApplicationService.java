@@ -2,11 +2,11 @@ package org.example;
 
 public class TransferApplicationService {
 
-    private final Repository<AccountNumber, BankAccount> accounts;
+    private final AccountRepository accounts;
     private final TransferService transferService;
 
     public TransferApplicationService(
-            Repository<AccountNumber, BankAccount> accounts,
+            AccountRepository accounts,
             TransferService transferService) {
 
         this.accounts = accounts;
@@ -19,22 +19,20 @@ public class TransferApplicationService {
             double amount) {
 
         BankAccount from =
-                accounts.findById(fromNumber);
-
-        if (from == null) {
-            throw new IllegalArgumentException(
-                    "Source account not found"
-            );
-        }
+                accounts.findById(fromNumber)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Source account not found"
+                                )
+                        );
 
         BankAccount to =
-                accounts.findById(toNumber);
-
-        if (to == null) {
-            throw new IllegalArgumentException(
-                    "Target account not found"
-            );
-        }
+                accounts.findById(toNumber)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Target account not found"
+                                )
+                        );
 
         transferService.transfer(
                 from,

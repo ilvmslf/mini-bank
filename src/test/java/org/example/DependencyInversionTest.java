@@ -2,15 +2,17 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DependencyInversionTest {
 
     @Test
-    void accountServiceWorksWithRepositoryAbstraction() {
+    void accountServiceWorksWithRepositoryPort() {
         // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
+        AccountRepository repository =
+                new InMemoryAccountRepository();
 
         AccountService accountService =
                 new AccountService(repository);
@@ -34,10 +36,10 @@ public class DependencyInversionTest {
     }
 
     @Test
-    void transferApplicationServiceWorksWithRepositoryAbstraction() {
+    void transferApplicationServiceWorksWithRepositoryPort() {
         // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
+        AccountRepository repository =
+                new InMemoryAccountRepository();
 
         TransferService transferService =
                 new TransferService(
@@ -91,9 +93,9 @@ public class DependencyInversionTest {
     }
 
     @Test
-    void accountServiceCanWorkWithFakeRepository() {
+    void accountServiceCanWorkWithFakeAdapter() {
         // Arrange
-        FakeAccountRepository repository =
+        AccountRepository repository =
                 new FakeAccountRepository();
 
         AccountService accountService =
@@ -119,61 +121,44 @@ public class DependencyInversionTest {
     }
 
     private static class FakeAccountRepository
-            implements Repository<AccountNumber, BankAccount> {
+            implements AccountRepository {
 
         private BankAccount account;
 
         @Override
-        public void save(BankAccount value) {
-            account = value;
+        public void save(BankAccount account) {
+            this.account = account;
         }
 
         @Override
-        public BankAccount findById(
-                AccountNumber id) {
+        public Optional<BankAccount> findById(
+                AccountNumber number) {
 
             if (account == null) {
-                return null;
+                return Optional.empty();
             }
 
-            if (account.getId().equals(id)) {
-                return account;
+            if (account.getId().equals(number)) {
+                return Optional.of(account);
             }
 
-            return null;
-        }
-
-        @Override
-        public boolean existsById(
-                AccountNumber id) {
-
-            return findById(id) != null;
+            return Optional.empty();
         }
 
         @Override
         public boolean deleteById(
-                AccountNumber id) {
+                AccountNumber number) {
 
-            if (!existsById(id)) {
+            if (account == null) {
+                return false;
+            }
+
+            if (!account.getId().equals(number)) {
                 return false;
             }
 
             account = null;
             return true;
-        }
-
-        @Override
-        public java.util.List<BankAccount> findAll() {
-            if (account == null) {
-                return java.util.List.of();
-            }
-
-            return java.util.List.of(account);
-        }
-
-        @Override
-        public int size() {
-            return account == null ? 0 : 1;
         }
     }
 }

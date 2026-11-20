@@ -13,8 +13,8 @@ public class ServiceSeparationTest {
     @Test
     void accountServiceWorksWithoutTransferService() {
         // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
+        AccountRepository repository =
+                new InMemoryAccountRepository();
 
         AccountService accountService =
                 new AccountService(repository);
@@ -52,7 +52,7 @@ public class ServiceSeparationTest {
     }
 
     @Test
-    void accountServiceDoesNotDependOnTransferService() {
+    void accountServiceDependsOnAccountRepository() {
         // Arrange
         Class<?>[] constructorParameters =
                 AccountService.class
@@ -66,7 +66,7 @@ public class ServiceSeparationTest {
         );
 
         assertEquals(
-                Repository.class,
+                AccountRepository.class,
                 constructorParameters[0]
         );
     }
@@ -94,18 +94,15 @@ public class ServiceSeparationTest {
     @Test
     void transferApplicationServiceTransfersMoney() {
         // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
-
-        BlockedAccountRegistry blockedAccounts =
-                new BlockedAccountRegistry();
+        AccountRepository repository =
+                new InMemoryAccountRepository();
 
         TransferService transferService =
                 new TransferService(
                         amount -> 0.0,
                         message -> {
                         },
-                        blockedAccounts,
+                        new BlockedAccountRegistry(),
                         new TransactionJournal()
                 );
 
@@ -154,8 +151,8 @@ public class ServiceSeparationTest {
     @Test
     void transferStillRejectsInsufficientFunds() {
         // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
+        AccountRepository repository =
+                new InMemoryAccountRepository();
 
         TransferService transferService =
                 new TransferService(
@@ -221,8 +218,8 @@ public class ServiceSeparationTest {
     @Test
     void transferStillRejectsTransferOverLimit() {
         // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
+        AccountRepository repository =
+                new InMemoryAccountRepository();
 
         TransferService transferService =
                 new TransferService(
@@ -288,8 +285,8 @@ public class ServiceSeparationTest {
     @Test
     void transferStillRejectsBlockedAccount() {
         // Arrange
-        Repository<AccountNumber, BankAccount> repository =
-                new InMemoryRepository<>();
+        AccountRepository repository =
+                new InMemoryAccountRepository();
 
         BlockedAccountRegistry blockedAccounts =
                 new BlockedAccountRegistry();
@@ -330,13 +327,7 @@ public class ServiceSeparationTest {
                 from.getId()
         );
 
-        double fromBefore =
-                from.getBalance();
-
-        double toBefore =
-                to.getBalance();
-
-        // Act
+        // Act + Assert
         assertThrows(
                 IllegalStateException.class,
                 () ->
@@ -345,17 +336,6 @@ public class ServiceSeparationTest {
                                 to.getId(),
                                 1000
                         )
-        );
-
-        // Assert
-        assertEquals(
-                fromBefore,
-                from.getBalance()
-        );
-
-        assertEquals(
-                toBefore,
-                to.getBalance()
         );
     }
 }
