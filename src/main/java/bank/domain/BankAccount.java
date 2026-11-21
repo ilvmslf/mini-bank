@@ -6,6 +6,7 @@ public abstract class BankAccount {
 
     private final AccountNumber number;
     private final String owner;
+
     private double balance;
 
     protected BankAccount(
@@ -33,11 +34,13 @@ public abstract class BankAccount {
         return owner;
     }
 
-    public double getBalance() {
+    public synchronized double getBalance() {
         return balance;
     }
 
-    public void deposit(double amount) {
+    public synchronized void deposit(
+            double amount) {
+
         if (amount <= 0) {
             throw new IllegalArgumentException(
                     "Amount must be positive"
@@ -47,7 +50,9 @@ public abstract class BankAccount {
         balance += amount;
     }
 
-    public void withdraw(double amount) {
+    public synchronized void withdraw(
+            double amount) {
+
         if (amount <= 0) {
             throw new IllegalArgumentException(
                     "Amount must be positive"
