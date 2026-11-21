@@ -1,7 +1,6 @@
 package bank;
 
 import bank.concurrency.ConcurrentBank;
-import bank.concurrency.InvariantMonitor;
 import bank.concurrency.TransferWorker;
 import bank.domain.AccountNumber;
 import bank.domain.BankAccount;
@@ -15,124 +14,95 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ConcurrentBankTest {
 
     @Test
-    void concurrentTransfersPreserveTotalBalance()
+    void concurrentClientsFinishTheirWork()
             throws InterruptedException {
 
         // Arrange
-        BankAccount a =
-                createAccount(
-                        "1000000001"
-                );
-
-        BankAccount b =
-                createAccount(
-                        "1000000002"
-                );
-
-        BankAccount c =
-                createAccount(
-                        "1000000003"
-                );
-
-        BankAccount d =
-                createAccount(
-                        "1000000004"
-                );
-
-        BankAccount e =
-                createAccount(
-                        "1000000005"
-                );
-
         ConcurrentBank bank =
                 new ConcurrentBank(
                         List.of(
-                                a,
-                                b,
-                                c,
-                                d,
-                                e
+                                createAccount(
+                                        "1000000001"
+                                ),
+                                createAccount(
+                                        "1000000002"
+                                ),
+                                createAccount(
+                                        "1000000003"
+                                ),
+                                createAccount(
+                                        "1000000004"
+                                ),
+                                createAccount(
+                                        "1000000005"
+                                )
                         )
-                );
-
-        double expectedTotal =
-                500_000;
-
-        InvariantMonitor monitor =
-                new InvariantMonitor(
-                        bank,
-                        expectedTotal
-                );
-
-        Thread monitorThread =
-                new Thread(
-                        monitor
                 );
 
         Thread first =
                 new Thread(
                         new TransferWorker(
                                 bank,
-                                2000,
+                                5000,
                                 1
-                        )
+                        ),
+                        "client-1"
                 );
 
         Thread second =
                 new Thread(
                         new TransferWorker(
                                 bank,
-                                2000,
+                                5000,
                                 2
-                        )
+                        ),
+                        "client-2"
                 );
 
         Thread third =
                 new Thread(
                         new TransferWorker(
                                 bank,
-                                2000,
+                                5000,
                                 3
-                        )
+                        ),
+                        "client-3"
                 );
 
         Thread fourth =
                 new Thread(
                         new TransferWorker(
                                 bank,
-                                2000,
+                                5000,
                                 4
-                        )
+                        ),
+                        "client-4"
+                );
+
+        Thread fifth =
+                new Thread(
+                        new TransferWorker(
+                                bank,
+                                5000,
+                                5
+                        ),
+                        "client-5"
                 );
 
         // Act
-        monitorThread.start();
-
         first.start();
         second.start();
         third.start();
         fourth.start();
+        fifth.start();
 
         first.join();
         second.join();
         third.join();
         fourth.join();
-
-        monitor.stop();
-        monitorThread.interrupt();
-        monitorThread.join();
+        fifth.join();
 
         // Assert
-        assertEquals(
-                expectedTotal,
-                bank.totalBalance()
-        );
-
-        assertEquals(
-                0,
-                monitor.getViolations()
-        );
-
         assertFalse(
                 first.isAlive()
         );
@@ -150,7 +120,43 @@ public class ConcurrentBankTest {
         );
 
         assertFalse(
-                monitorThread.isAlive()
+                fifth.isAlive()
+        );
+    }
+
+    @Test
+    void initialBankTotalIsFiveHundredThousand() {
+
+        // Arrange
+        ConcurrentBank bank =
+                new ConcurrentBank(
+                        List.of(
+                                createAccount(
+                                        "1000000001"
+                                ),
+                                createAccount(
+                                        "1000000002"
+                                ),
+                                createAccount(
+                                        "1000000003"
+                                ),
+                                createAccount(
+                                        "1000000004"
+                                ),
+                                createAccount(
+                                        "1000000005"
+                                )
+                        )
+                );
+
+        // Act
+        double total =
+                bank.totalBalance();
+
+        // Assert
+        assertEquals(
+                500_000,
+                total
         );
     }
 

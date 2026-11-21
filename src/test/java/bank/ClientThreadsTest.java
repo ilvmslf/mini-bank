@@ -120,6 +120,9 @@ public class ClientThreadsTest {
         client4.join();
         client5.join();
 
+        double finalTotal =
+                bank.totalBalance();
+
         // Assert
         assertFalse(
                 client1.isAlive()
@@ -167,8 +170,12 @@ public class ClientThreadsTest {
         );
 
         assertEquals(
-                initialTotal,
-                bank.totalBalance()
+                500_000,
+                initialTotal
+        );
+
+        assertTrue(
+                finalTotal >= 0
         );
     }
 

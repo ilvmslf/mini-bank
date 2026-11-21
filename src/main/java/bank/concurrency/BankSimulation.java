@@ -12,7 +12,7 @@ public class BankSimulation {
             100_000;
 
     private static final int OPERATIONS_PER_CLIENT =
-            20_000;
+            50_000;
 
     public static void main(String[] args)
             throws InterruptedException {
@@ -58,15 +58,12 @@ public class BankSimulation {
                         )
                 );
 
-        System.out.println(
-                "Initial balances:"
-        );
-
-        printBalances(bank);
+        double initialTotal =
+                bank.totalBalance();
 
         System.out.println(
-                "Initial total: "
-                        + bank.totalBalance()
+                "INITIAL_TOTAL = "
+                        + initialTotal
         );
 
         TransferWorker worker1 =
@@ -134,11 +131,6 @@ public class BankSimulation {
                         "client-5"
                 );
 
-        System.out.println();
-        System.out.println(
-                "Starting clients..."
-        );
-
         client1.start();
         client2.start();
         client3.start();
@@ -151,10 +143,8 @@ public class BankSimulation {
         client4.join();
         client5.join();
 
-        System.out.println();
-        System.out.println(
-                "All clients finished."
-        );
+        double finalTotal =
+                bank.totalBalance();
 
         System.out.println();
         System.out.println(
@@ -164,45 +154,29 @@ public class BankSimulation {
         printBalances(bank);
 
         System.out.println();
+
         System.out.println(
-                "Final total: "
-                        + bank.totalBalance()
+                "FINAL_TOTAL = "
+                        + finalTotal
         );
 
-        printWorkerStatistics(
-                "client-1",
-                worker1
-        );
-
-        printWorkerStatistics(
-                "client-2",
-                worker2
-        );
-
-        printWorkerStatistics(
-                "client-3",
-                worker3
-        );
-
-        printWorkerStatistics(
-                "client-4",
-                worker4
-        );
-
-        printWorkerStatistics(
-                "client-5",
-                worker5
+        System.out.println(
+                "INITIAL_TOTAL == FINAL_TOTAL: "
+                        + (Double.compare(
+                        initialTotal,
+                        finalTotal
+                ) == 0)
         );
 
         System.out.println();
 
         System.out.println(
-                "Bank successful transfers: "
+                "Successful transfers: "
                         + bank.getSuccessfulTransfers()
         );
 
         System.out.println(
-                "Bank rejected transfers: "
+                "Rejected transfers: "
                         + bank.getRejectedTransfers()
         );
     }
@@ -234,20 +208,5 @@ public class BankSimulation {
                             + account.getBalance()
             );
         }
-    }
-
-    private static void printWorkerStatistics(
-            String name,
-            TransferWorker worker) {
-
-        System.out.println(
-                name
-                        + ": successful="
-                        + worker.getSuccessfulOperations()
-                        + ", failed="
-                        + worker.getFailedOperations()
-                        + ", total="
-                        + worker.getTotalOperations()
-        );
     }
 }

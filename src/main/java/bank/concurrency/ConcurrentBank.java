@@ -10,9 +10,6 @@ public class ConcurrentBank {
 
     private final List<BankAccount> accounts;
 
-    private final Object bankLock =
-            new Object();
-
     private final AtomicInteger successfulTransfers =
             new AtomicInteger();
 
@@ -61,54 +58,54 @@ public class ConcurrentBank {
             );
         }
 
-        synchronized (bankLock) {
+        try {
+            from.withdraw(amount);
 
-            try {
-                from.withdraw(amount);
-                to.deposit(amount);
+            /*
+             * ВАЖНО:
+             * между withdraw() и deposit()
+             * другой поток может вмешаться.
+             *
+             * На этом этапе это сделано
+             * специально для демонстрации race condition.
+             */
+            to.deposit(amount);
 
-                successfulTransfers
-                        .incrementAndGet();
+            successfulTransfers
+                    .incrementAndGet();
 
-            } catch (RuntimeException exception) {
+        } catch (RuntimeException exception) {
 
-                rejectedTransfers
-                        .incrementAndGet();
+            rejectedTransfers
+                    .incrementAndGet();
 
-                throw exception;
-            }
+            throw exception;
         }
     }
 
     public double totalBalance() {
 
-        synchronized (bankLock) {
+        double total = 0;
 
-            double total = 0;
-
-            for (BankAccount account : accounts) {
-                total += account.getBalance();
-            }
-
-            return total;
+        for (BankAccount account : accounts) {
+            total += account.getBalance();
         }
+
+        return total;
     }
 
     public List<Double> balanceSnapshot() {
 
-        synchronized (bankLock) {
+        List<Double> result =
+                new ArrayList<>();
 
-            List<Double> result =
-                    new ArrayList<>();
-
-            for (BankAccount account : accounts) {
-                result.add(
-                        account.getBalance()
-                );
-            }
-
-            return result;
+        for (BankAccount account : accounts) {
+            result.add(
+                    account.getBalance()
+            );
         }
+
+        return result;
     }
 
     public BankAccount getAccount(
