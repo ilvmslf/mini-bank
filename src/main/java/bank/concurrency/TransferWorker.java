@@ -11,10 +11,25 @@ public class TransferWorker
     private final int operationCount;
     private final Random random;
 
+    private int successfulOperations;
+    private int failedOperations;
+
     public TransferWorker(
             ConcurrentBank bank,
             int operationCount,
             long randomSeed) {
+
+        if (bank == null) {
+            throw new IllegalArgumentException(
+                    "Bank must not be null"
+            );
+        }
+
+        if (operationCount <= 0) {
+            throw new IllegalArgumentException(
+                    "Operation count must be positive"
+            );
+        }
 
         this.bank = bank;
         this.operationCount =
@@ -48,6 +63,7 @@ public class TransferWorker
                     );
 
             if (fromIndex == toIndex) {
+                failedOperations++;
                 continue;
             }
 
@@ -63,7 +79,7 @@ public class TransferWorker
 
             double amount =
                     random.nextInt(
-                            1000
+                            5000
                     ) + 1;
 
             try {
@@ -73,12 +89,36 @@ public class TransferWorker
                         amount
                 );
 
-            } catch (RuntimeException ignored) {
+                successfulOperations++;
 
-                // Недостаточно средств или
-                // другая допустимая ошибка перевода.
-                // Банк остаётся в корректном состоянии.
+            } catch (RuntimeException exception) {
+
+                failedOperations++;
+
+                /*
+                 * Ошибка одной операции
+                 * НЕ завершает поток клиента.
+                 *
+                 * Клиент просто переходит
+                 * к следующей операции.
+                 */
             }
         }
+    }
+
+    public int getSuccessfulOperations() {
+
+        return successfulOperations;
+    }
+
+    public int getFailedOperations() {
+
+        return failedOperations;
+    }
+
+    public int getTotalOperations() {
+
+        return successfulOperations
+                + failedOperations;
     }
 }
