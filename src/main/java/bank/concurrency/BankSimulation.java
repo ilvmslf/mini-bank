@@ -11,6 +11,9 @@ public class BankSimulation {
     private static final double INITIAL_BALANCE =
             100_000;
 
+    private static final int CLIENT_COUNT =
+            5;
+
     private static final int OPERATIONS_PER_CLIENT =
             20_000;
 
@@ -64,9 +67,18 @@ public class BankSimulation {
         double initialTotal =
                 bank.totalBalance();
 
+        int totalAttempts =
+                CLIENT_COUNT
+                        * OPERATIONS_PER_CLIENT;
+
         System.out.println(
                 "INITIAL_TOTAL = "
                         + initialTotal
+        );
+
+        System.out.println(
+                "Expected attempts = "
+                        + totalAttempts
         );
 
         BankMonitor monitor =
@@ -147,10 +159,6 @@ public class BankSimulation {
                         "client-5"
                 );
 
-        /*
-         * Monitor запускаем ДО клиентов,
-         * чтобы он наблюдал всю симуляцию.
-         */
         monitorThread.start();
 
         client1.start();
@@ -165,19 +173,22 @@ public class BankSimulation {
         client4.join();
         client5.join();
 
-        /*
-         * Клиенты закончили работу.
-         * Теперь корректно останавливаем
-         * фоновый monitor.
-         */
         monitor.stop();
-
         monitorThread.interrupt();
-
         monitorThread.join();
 
         double finalTotal =
                 bank.totalBalance();
+
+        int successfulTransfers =
+                bank.getSuccessfulTransfers();
+
+        int failedTransfers =
+                bank.getFailedTransfers();
+
+        int countedAttempts =
+                successfulTransfers
+                        + failedTransfers;
 
         System.out.println();
         System.out.println(
@@ -210,6 +221,34 @@ public class BankSimulation {
         System.out.println();
 
         System.out.println(
+                "successfulTransfers = "
+                        + successfulTransfers
+        );
+
+        System.out.println(
+                "failedTransfers = "
+                        + failedTransfers
+        );
+
+        System.out.println(
+                "totalAttempts = "
+                        + totalAttempts
+        );
+
+        System.out.println(
+                "successful + failed = "
+                        + countedAttempts
+        );
+
+        System.out.println(
+                "Statistics correct: "
+                        + (countedAttempts
+                        == totalAttempts)
+        );
+
+        System.out.println();
+
+        System.out.println(
                 "Monitor checks: "
                         + monitor.getChecks()
         );
@@ -219,19 +258,10 @@ public class BankSimulation {
                         + monitor.getViolations()
         );
 
-        System.out.println();
-
         System.out.println(
-                "Successful transfers: "
-                        + bank.getSuccessfulTransfers()
+                "Monitor alive: "
+                        + monitorThread.isAlive()
         );
-
-        System.out.println(
-                "Rejected transfers: "
-                        + bank.getRejectedTransfers()
-        );
-
-        System.out.println();
 
         System.out.println(
                 "All threads finished."

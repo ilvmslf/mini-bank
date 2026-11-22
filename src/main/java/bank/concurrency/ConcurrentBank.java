@@ -16,7 +16,7 @@ public class ConcurrentBank {
     private final AtomicInteger successfulTransfers =
             new AtomicInteger();
 
-    private final AtomicInteger rejectedTransfers =
+    private final AtomicInteger failedTransfers =
             new AtomicInteger();
 
     public ConcurrentBank(
@@ -96,7 +96,7 @@ public class ConcurrentBank {
 
                 } catch (RuntimeException exception) {
 
-                    rejectedTransfers
+                    failedTransfers
                             .incrementAndGet();
 
                     throw exception;
@@ -203,6 +203,7 @@ public class ConcurrentBank {
     }
 
     public int accountCount() {
+
         return accounts.size();
     }
 
@@ -211,8 +212,17 @@ public class ConcurrentBank {
         return successfulTransfers.get();
     }
 
+    public int getFailedTransfers() {
+
+        return failedTransfers.get();
+    }
+
+    /*
+     * Оставляем старое имя для совместимости
+     * с тестами предыдущих этапов.
+     */
     public int getRejectedTransfers() {
 
-        return rejectedTransfers.get();
+        return getFailedTransfers();
     }
 }

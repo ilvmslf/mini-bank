@@ -31,6 +31,12 @@ public class TransferWorker
             );
         }
 
+        if (bank.accountCount() < 2) {
+            throw new IllegalArgumentException(
+                    "At least two accounts are required"
+            );
+        }
+
         this.bank = bank;
         this.operationCount =
                 operationCount;
@@ -59,12 +65,11 @@ public class TransferWorker
 
             int toIndex =
                     random.nextInt(
-                            bank.accountCount()
+                            bank.accountCount() - 1
                     );
 
-            if (fromIndex == toIndex) {
-                failedOperations++;
-                continue;
+            if (toIndex >= fromIndex) {
+                toIndex++;
             }
 
             BankAccount from =
@@ -94,14 +99,6 @@ public class TransferWorker
             } catch (RuntimeException exception) {
 
                 failedOperations++;
-
-                /*
-                 * Ошибка одной операции
-                 * НЕ завершает поток клиента.
-                 *
-                 * Клиент просто переходит
-                 * к следующей операции.
-                 */
             }
         }
     }
