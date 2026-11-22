@@ -3,12 +3,15 @@ package bank.concurrency;
 import bank.domain.BankAccount;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConcurrentBank {
 
     private final List<BankAccount> accounts;
+
+    private final List<BankAccount> lockOrder;
 
     private final AtomicInteger successfulTransfers =
             new AtomicInteger();
@@ -33,6 +36,17 @@ public class ConcurrentBank {
 
         this.accounts =
                 new ArrayList<>(accounts);
+
+        this.lockOrder =
+                new ArrayList<>(accounts);
+
+        this.lockOrder.sort(
+                Comparator.comparing(
+                        account ->
+                                account.getId()
+                                        .value()
+                )
+        );
     }
 
     public void transfer(
@@ -117,27 +131,69 @@ public class ConcurrentBank {
 
     public double totalBalance() {
 
-        double total = 0;
+        return totalBalanceWithLocks(
+                0
+        );
+    }
 
-        for (BankAccount account : accounts) {
-            total += account.getBalance();
+    private double totalBalanceWithLocks(
+            int index) {
+
+        if (index == lockOrder.size()) {
+
+            double total = 0;
+
+            for (BankAccount account : accounts) {
+                total += account.getBalance();
+            }
+
+            return total;
         }
 
-        return total;
+        BankAccount account =
+                lockOrder.get(index);
+
+        synchronized (account) {
+
+            return totalBalanceWithLocks(
+                    index + 1
+            );
+        }
     }
 
     public List<Double> balanceSnapshot() {
 
-        List<Double> result =
-                new ArrayList<>();
+        return balanceSnapshotWithLocks(
+                0
+        );
+    }
 
-        for (BankAccount account : accounts) {
-            result.add(
-                    account.getBalance()
-            );
+    private List<Double> balanceSnapshotWithLocks(
+            int index) {
+
+        if (index == lockOrder.size()) {
+
+            List<Double> result =
+                    new ArrayList<>();
+
+            for (BankAccount account : accounts) {
+                result.add(
+                        account.getBalance()
+                );
+            }
+
+            return result;
         }
 
-        return result;
+        BankAccount account =
+                lockOrder.get(index);
+
+        synchronized (account) {
+
+            return balanceSnapshotWithLocks(
+                    index + 1
+            );
+        }
     }
 
     public BankAccount getAccount(

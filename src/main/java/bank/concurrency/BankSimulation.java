@@ -12,7 +12,10 @@ public class BankSimulation {
             100_000;
 
     private static final int OPERATIONS_PER_CLIENT =
-            50_000;
+            20_000;
+
+    private static final long MONITOR_INTERVAL_MS =
+            10;
 
     public static void main(String[] args)
             throws InterruptedException {
@@ -65,6 +68,19 @@ public class BankSimulation {
                 "INITIAL_TOTAL = "
                         + initialTotal
         );
+
+        BankMonitor monitor =
+                new BankMonitor(
+                        bank,
+                        initialTotal,
+                        MONITOR_INTERVAL_MS
+                );
+
+        Thread monitorThread =
+                new Thread(
+                        monitor,
+                        "bank-monitor"
+                );
 
         TransferWorker worker1 =
                 new TransferWorker(
@@ -131,6 +147,12 @@ public class BankSimulation {
                         "client-5"
                 );
 
+        /*
+         * Monitor запускаем ДО клиентов,
+         * чтобы он наблюдал всю симуляцию.
+         */
+        monitorThread.start();
+
         client1.start();
         client2.start();
         client3.start();
@@ -143,10 +165,27 @@ public class BankSimulation {
         client4.join();
         client5.join();
 
+        /*
+         * Клиенты закончили работу.
+         * Теперь корректно останавливаем
+         * фоновый monitor.
+         */
+        monitor.stop();
+
+        monitorThread.interrupt();
+
+        monitorThread.join();
+
         double finalTotal =
                 bank.totalBalance();
 
         System.out.println();
+        System.out.println(
+                "All clients finished."
+        );
+
+        System.out.println();
+
         System.out.println(
                 "Final balances:"
         );
@@ -161,11 +200,23 @@ public class BankSimulation {
         );
 
         System.out.println(
-                "INITIAL_TOTAL == FINAL_TOTAL: "
+                "Invariant preserved: "
                         + (Double.compare(
                         initialTotal,
                         finalTotal
                 ) == 0)
+        );
+
+        System.out.println();
+
+        System.out.println(
+                "Monitor checks: "
+                        + monitor.getChecks()
+        );
+
+        System.out.println(
+                "Monitor violations: "
+                        + monitor.getViolations()
         );
 
         System.out.println();
@@ -178,6 +229,12 @@ public class BankSimulation {
         System.out.println(
                 "Rejected transfers: "
                         + bank.getRejectedTransfers()
+        );
+
+        System.out.println();
+
+        System.out.println(
+                "All threads finished."
         );
     }
 
