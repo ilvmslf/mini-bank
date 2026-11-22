@@ -26,6 +26,9 @@ public class BankSimulation {
     public static void main(String[] args)
             throws InterruptedException {
 
+        /*
+         * 1. Создаём счета.
+         */
         BankAccount accountA =
                 createAccount(
                         "1000000001",
@@ -67,6 +70,9 @@ public class BankSimulation {
                         )
                 );
 
+        /*
+         * Банковский инвариант.
+         */
         double initialTotal =
                 bank.totalBalance();
 
@@ -74,9 +80,9 @@ public class BankSimulation {
                 CLIENT_COUNT
                         * OPERATIONS_PER_CLIENT;
 
-        System.out.println(
-                "INITIAL_TOTAL = "
-                        + initialTotal
+        System.out.printf(
+                "INITIAL_TOTAL = %.0f%n",
+                initialTotal
         );
 
         System.out.println(
@@ -84,6 +90,9 @@ public class BankSimulation {
                         + totalAttempts
         );
 
+        /*
+         * 2. Создаём фоновые задачи.
+         */
         BankMonitor bankMonitor =
                 new BankMonitor(
                         bank,
@@ -103,12 +112,15 @@ public class BankSimulation {
                         "bank-monitor"
                 );
 
-        Thread statisticsMonitorThread =
+        Thread statisticsThread =
                 new Thread(
                         statisticsMonitor,
                         "statistics-monitor"
                 );
 
+        /*
+         * 3. Создаём клиентские задачи.
+         */
         TransferWorker worker1 =
                 new TransferWorker(
                         bank,
@@ -175,14 +187,13 @@ public class BankSimulation {
                 );
 
         /*
-         * Сначала запускаем оба monitor-thread.
+         * 4. Запускаем фоновые процессы.
          */
         bankMonitorThread.start();
-
-        statisticsMonitorThread.start();
+        statisticsThread.start();
 
         /*
-         * Затем пять клиентских потоков.
+         * 5. Запускаем клиентов.
          */
         client1.start();
         client2.start();
@@ -191,7 +202,7 @@ public class BankSimulation {
         client5.start();
 
         /*
-         * main ждёт всех клиентов.
+         * 6. Ждём завершения всех клиентов.
          */
         client1.join();
         client2.join();
@@ -200,23 +211,29 @@ public class BankSimulation {
         client5.join();
 
         /*
-         * Клиенты завершились.
-         * Останавливаем оба фоновых процесса.
+         * 7. Запрашиваем остановку
+         * фоновых процессов.
          */
         bankMonitor.stop();
         statisticsMonitor.stop();
 
+        /*
+         * Будим monitor-thread,
+         * если они находятся в sleep().
+         */
         bankMonitorThread.interrupt();
-        statisticsMonitorThread.interrupt();
+        statisticsThread.interrupt();
 
         /*
-         * Дожидаемся реального завершения
-         * обоих служебных потоков.
+         * 8. Ждём корректного завершения
+         * фоновых потоков.
          */
         bankMonitorThread.join();
+        statisticsThread.join();
 
-        statisticsMonitorThread.join();
-
+        /*
+         * 9. Получаем финальное состояние.
+         */
         double finalTotal =
                 bank.totalBalance();
 
@@ -230,63 +247,103 @@ public class BankSimulation {
                 successfulTransfers
                         + failedTransfers;
 
-        System.out.println();
-        System.out.println(
-                "All clients finished."
-        );
-
-        System.out.println();
-
-        System.out.println(
-                "Final balances:"
-        );
-
-        printBalances(bank);
-
-        System.out.println();
-
-        System.out.println(
-                "FINAL_TOTAL = "
-                        + finalTotal
-        );
-
-        System.out.println(
-                "Invariant preserved: "
-                        + (Double.compare(
+        boolean invariantPreserved =
+                Double.compare(
                         initialTotal,
                         finalTotal
-                ) == 0)
+                ) == 0;
+
+        boolean statisticsCorrect =
+                countedAttempts
+                        == totalAttempts;
+
+        boolean allWorkersStopped =
+                !client1.isAlive()
+                        && !client2.isAlive()
+                        && !client3.isAlive()
+                        && !client4.isAlive()
+                        && !client5.isAlive()
+                        && !bankMonitorThread.isAlive()
+                        && !statisticsThread.isAlive();
+
+        /*
+         * 10. Финальный отчёт.
+         */
+        printFinalReport(
+                initialTotal,
+                finalTotal,
+                successfulTransfers,
+                failedTransfers,
+                totalAttempts,
+                invariantPreserved,
+                statisticsCorrect,
+                allWorkersStopped,
+                bankMonitor,
+                statisticsMonitor
         );
+    }
+
+    private static void printFinalReport(
+            double initialTotal,
+            double finalTotal,
+            int successfulTransfers,
+            int failedTransfers,
+            int totalAttempts,
+            boolean invariantPreserved,
+            boolean statisticsCorrect,
+            boolean allWorkersStopped,
+            BankMonitor bankMonitor,
+            StatisticsMonitor statisticsMonitor) {
 
         System.out.println();
+        System.out.println(
+                "=== FINAL REPORT ==="
+        );
+
+        System.out.printf(
+                "Initial total: %.0f%n",
+                initialTotal
+        );
+
+        System.out.printf(
+                "Final total: %.0f%n",
+                finalTotal
+        );
 
         System.out.println(
-                "successfulTransfers = "
+                "Successful transfers: "
                         + successfulTransfers
         );
 
         System.out.println(
-                "failedTransfers = "
+                "Failed transfers: "
                         + failedTransfers
         );
 
         System.out.println(
-                "totalAttempts = "
+                "Total attempts: "
                         + totalAttempts
         );
 
         System.out.println(
-                "successful + failed = "
-                        + countedAttempts
+                "Counted attempts: "
+                        + (successfulTransfers
+                        + failedTransfers)
         );
 
         System.out.println(
-                "Statistics correct: "
-                        + (countedAttempts
-                        == totalAttempts)
+                "Statistics: "
+                        + (statisticsCorrect
+                        ? "OK"
+                        : "ERROR")
         );
 
-        System.out.println();
+        System.out.println(
+                "Bank invariant: "
+                        + (invariantPreserved
+                        ? "OK"
+                        : "BROKEN")
+        );
 
         System.out.println(
                 "Bank Monitor checks: "
@@ -303,21 +360,18 @@ public class BankSimulation {
                         + statisticsMonitor.getReports()
         );
 
-        System.out.println();
+        if (allWorkersStopped) {
 
-        System.out.println(
-                "Bank Monitor alive: "
-                        + bankMonitorThread.isAlive()
-        );
+            System.out.println(
+                    "All workers stopped."
+            );
 
-        System.out.println(
-                "Statistics Monitor alive: "
-                        + statisticsMonitorThread.isAlive()
-        );
+        } else {
 
-        System.out.println(
-                "All threads finished."
-        );
+            System.out.println(
+                    "ERROR: some workers are still running."
+            );
+        }
     }
 
     private static BankAccount createAccount(
@@ -329,23 +383,5 @@ public class BankSimulation {
                 owner,
                 INITIAL_BALANCE
         );
-    }
-
-    private static void printBalances(
-            ConcurrentBank bank) {
-
-        for (int i = 0;
-             i < bank.accountCount();
-             i++) {
-
-            BankAccount account =
-                    bank.getAccount(i);
-
-            System.out.println(
-                    account.getId().value()
-                            + " = "
-                            + account.getBalance()
-            );
-        }
     }
 }
