@@ -17,8 +17,11 @@ public class BankSimulation {
     private static final int OPERATIONS_PER_CLIENT =
             20_000;
 
-    private static final long MONITOR_INTERVAL_MS =
+    private static final long BANK_MONITOR_INTERVAL_MS =
             10;
+
+    private static final long STATISTICS_INTERVAL_MS =
+            100;
 
     public static void main(String[] args)
             throws InterruptedException {
@@ -81,17 +84,29 @@ public class BankSimulation {
                         + totalAttempts
         );
 
-        BankMonitor monitor =
+        BankMonitor bankMonitor =
                 new BankMonitor(
                         bank,
                         initialTotal,
-                        MONITOR_INTERVAL_MS
+                        BANK_MONITOR_INTERVAL_MS
                 );
 
-        Thread monitorThread =
+        StatisticsMonitor statisticsMonitor =
+                new StatisticsMonitor(
+                        bank,
+                        STATISTICS_INTERVAL_MS
+                );
+
+        Thread bankMonitorThread =
                 new Thread(
-                        monitor,
+                        bankMonitor,
                         "bank-monitor"
+                );
+
+        Thread statisticsMonitorThread =
+                new Thread(
+                        statisticsMonitor,
+                        "statistics-monitor"
                 );
 
         TransferWorker worker1 =
@@ -159,23 +174,48 @@ public class BankSimulation {
                         "client-5"
                 );
 
-        monitorThread.start();
+        /*
+         * Сначала запускаем оба monitor-thread.
+         */
+        bankMonitorThread.start();
 
+        statisticsMonitorThread.start();
+
+        /*
+         * Затем пять клиентских потоков.
+         */
         client1.start();
         client2.start();
         client3.start();
         client4.start();
         client5.start();
 
+        /*
+         * main ждёт всех клиентов.
+         */
         client1.join();
         client2.join();
         client3.join();
         client4.join();
         client5.join();
 
-        monitor.stop();
-        monitorThread.interrupt();
-        monitorThread.join();
+        /*
+         * Клиенты завершились.
+         * Останавливаем оба фоновых процесса.
+         */
+        bankMonitor.stop();
+        statisticsMonitor.stop();
+
+        bankMonitorThread.interrupt();
+        statisticsMonitorThread.interrupt();
+
+        /*
+         * Дожидаемся реального завершения
+         * обоих служебных потоков.
+         */
+        bankMonitorThread.join();
+
+        statisticsMonitorThread.join();
 
         double finalTotal =
                 bank.totalBalance();
@@ -249,18 +289,30 @@ public class BankSimulation {
         System.out.println();
 
         System.out.println(
-                "Monitor checks: "
-                        + monitor.getChecks()
+                "Bank Monitor checks: "
+                        + bankMonitor.getChecks()
         );
 
         System.out.println(
-                "Monitor violations: "
-                        + monitor.getViolations()
+                "Bank Monitor violations: "
+                        + bankMonitor.getViolations()
         );
 
         System.out.println(
-                "Monitor alive: "
-                        + monitorThread.isAlive()
+                "Statistics reports: "
+                        + statisticsMonitor.getReports()
+        );
+
+        System.out.println();
+
+        System.out.println(
+                "Bank Monitor alive: "
+                        + bankMonitorThread.isAlive()
+        );
+
+        System.out.println(
+                "Statistics Monitor alive: "
+                        + statisticsMonitorThread.isAlive()
         );
 
         System.out.println(
