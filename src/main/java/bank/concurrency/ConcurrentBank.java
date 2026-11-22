@@ -58,28 +58,43 @@ public class ConcurrentBank {
             );
         }
 
-        try {
-            from.withdraw(amount);
+        BankAccount first;
+        BankAccount second;
 
-            /*
-             * ВАЖНО:
-             * между withdraw() и deposit()
-             * другой поток может вмешаться.
-             *
-             * На этом этапе это сделано
-             * специально для демонстрации race condition.
-             */
-            to.deposit(amount);
+        if (from.getId()
+                .value()
+                .compareTo(
+                        to.getId().value()
+                ) < 0) {
 
-            successfulTransfers
-                    .incrementAndGet();
+            first = from;
+            second = to;
 
-        } catch (RuntimeException exception) {
+        } else {
 
-            rejectedTransfers
-                    .incrementAndGet();
+            first = to;
+            second = from;
+        }
 
-            throw exception;
+        synchronized (first) {
+
+            synchronized (second) {
+
+                try {
+                    from.withdraw(amount);
+                    to.deposit(amount);
+
+                    successfulTransfers
+                            .incrementAndGet();
+
+                } catch (RuntimeException exception) {
+
+                    rejectedTransfers
+                            .incrementAndGet();
+
+                    throw exception;
+                }
+            }
         }
     }
 
