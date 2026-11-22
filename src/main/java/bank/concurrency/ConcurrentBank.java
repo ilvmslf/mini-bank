@@ -58,23 +58,16 @@ public class ConcurrentBank {
             );
         }
 
-        BankAccount first;
-        BankAccount second;
+        BankAccount first =
+                getFirstLock(
+                        from,
+                        to
+                );
 
-        if (from.getId()
-                .value()
-                .compareTo(
-                        to.getId().value()
-                ) < 0) {
-
-            first = from;
-            second = to;
-
-        } else {
-
-            first = to;
-            second = from;
-        }
+        BankAccount second =
+                first == from
+                        ? to
+                        : from;
 
         synchronized (first) {
 
@@ -96,6 +89,30 @@ public class ConcurrentBank {
                 }
             }
         }
+    }
+
+    private BankAccount getFirstLock(
+            BankAccount firstAccount,
+            BankAccount secondAccount) {
+
+        String firstNumber =
+                firstAccount
+                        .getId()
+                        .value();
+
+        String secondNumber =
+                secondAccount
+                        .getId()
+                        .value();
+
+        if (firstNumber.compareTo(
+                secondNumber
+        ) < 0) {
+
+            return firstAccount;
+        }
+
+        return secondAccount;
     }
 
     public double totalBalance() {
